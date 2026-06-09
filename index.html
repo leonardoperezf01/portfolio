@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>luchernan — cybersecurity portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f3;
+      --bg2: #ffffff;
+      --bg3: #edecea;
+      --text: #1a1917;
+      --text2: #5a584f;
+      --text3: #9a9890;
+      --accent: #c8382b;
+      --accent2: #e85d52;
+      --border: #d8d6d0;
+      --border2: #c0bdb5;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 6px;
+      --radius-lg: 12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── CURSOR ── */
+    .cursor {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease, opacity 0.2s;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring {
+      width: 32px; height: 32px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.35s ease, opacity 0.3s;
+      transform: translate(-50%, -50%);
+      opacity: 0.5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(247,246,243,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-logo .bracket { color: var(--text3); }
+    .nav-logo .name em { color: var(--accent); font-style: normal; }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text2);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .nav-links a::before { content: "> "; color: var(--border2); }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-links a:hover::before { color: var(--accent2); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 0 48px;
+      padding-top: 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.35;
+    }
+
+    .hero-content { position: relative; z-index: 2; max-width: 780px; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text2);
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 40px;
+      letter-spacing: 0.06em;
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero-name {
+      font-family: var(--sans);
+      font-size: clamp(52px, 7vw, 96px);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .hero-name em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero-role {
+      font-family: var(--mono);
+      font-size: clamp(14px, 1.8vw, 18px);
+      color: var(--text2);
+      margin-bottom: 32px;
+      letter-spacing: 0.02em;
+    }
+    .hero-role span { color: var(--accent); }
+
+    .hero-desc {
+      font-size: 17px;
+      color: var(--text2);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .hero-ctas {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border2);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+
+    /* ── TERMINAL WIDGET ── */
+    .terminal-widget {
+      position: absolute;
+      right: 80px; top: 50%;
+      transform: translateY(-50%);
+      width: 420px;
+      background: #1a1917;
+      border-radius: var(--radius-lg);
+      border: 1px solid #3a3834;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+      z-index: 2;
+    }
+    .terminal-bar {
+      background: #252420;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid #3a3834;
+    }
+    .terminal-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .terminal-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: #6b6860;
+      margin-left: auto;
+      letter-spacing: 0.05em;
+    }
+    .terminal-body {
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.9;
+      color: #c8c4bc;
+      min-height: 280px;
+    }
+    .t-prompt { color: #688f6a; }
+    .t-cmd { color: #e8e4dc; }
+    .t-comment { color: #5a5850; }
+    .t-key { color: #c8382b; }
+    .t-val { color: #8eb87a; }
+    .t-info { color: #7ab0e8; }
+    .t-warn { color: #d4a84a; }
+    .t-cursor-blink {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: var(--accent);
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── SECTIONS ── */
+    section {
+      padding: 100px 48px;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      max-width: 48px;
+      height: 1px;
+      background: var(--border2);
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 56px;
+    }
+    .section-title em { font-style: normal; color: var(--accent); }
+
+    /* ── ABOUT ── */
+    #about { background: var(--bg2); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .about-text p {
+      font-size: 16px;
+      color: var(--text2);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .about-certs {
+      display: flex; flex-direction: column; gap: 16px;
+      margin-top: 32px;
+    }
+
+    .cert-badge {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .cert-badge:hover { border-color: var(--accent); transform: translateX(4px); }
+
+    .cert-icon {
+      width: 40px; height: 40px;
+      background: #fff0ef;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .cert-info { flex: 1; }
+    .cert-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .cert-org {
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    .cert-status {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      letter-spacing: 0.04em;
+    }
+
+    /* SKILLS */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .skill-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .skill-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+
+    .skill-card-icon {
+      width: 36px; height: 36px;
+      background: #fff0ef;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .skill-card-icon svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .skill-card-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .skill-tags {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .skill-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── PROJECTS ── */
+    #projects { background: var(--bg2); }
+
+    .projects-list { display: flex; flex-direction: column; gap: 2px; }
+
+    .project-item {
+      display: grid;
+      grid-template-columns: 60px 1fr auto;
+      align-items: center;
+      gap: 24px;
+      padding: 28px 32px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, transform 0.2s, background 0.2s;
+      margin-bottom: 12px;
+    }
+    .project-item:hover { border-color: var(--accent); transform: translateX(6px); background: var(--bg2); }
+
+    .project-num {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--border2);
+    }
+
+    .project-info { }
+    .project-name {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .project-desc {
+      font-size: 14px;
+      color: var(--text2);
+      margin-bottom: 12px;
+    }
+    .project-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .project-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text3);
+    }
+    .project-tag.red {
+      background: #fff0ef;
+      border-color: #f0c8c4;
+      color: var(--accent);
+    }
+
+    .project-arrow {
+      font-size: 20px;
+      color: var(--border2);
+      transition: color 0.2s, transform 0.2s;
+    }
+    .project-item:hover .project-arrow { color: var(--accent); transform: translateX(4px); }
+
+    /* ── WRITEUPS ── */
+    #writeups { background: var(--bg); }
+
+    .writeup-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .writeup-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      display: flex; flex-direction: column;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .writeup-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+
+    .writeup-platform {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .writeup-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 8px;
+      flex: 1;
+    }
+    .writeup-diff {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      align-self: flex-start;
+      margin-bottom: 12px;
+    }
+    .diff-easy { background: #e8f5e9; color: #2e7d32; }
+    .diff-medium { background: #fff8e1; color: #f57f17; }
+    .diff-hard { background: #ffebee; color: var(--accent); }
+    .diff-insane { background: #f3e5f5; color: #6a1b9a; }
+
+    .writeup-meta {
+      font-size: 12px;
+      color: var(--text3);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── TERMINAL ── */
+    #terminal-section { background: #1a1917; }
+
+    #terminal-section .section-label { color: #5a5850; }
+    #terminal-section .section-label::after { background: #3a3834; }
+    #terminal-section .section-title { color: #e8e4dc; }
+    #terminal-section .section-title em { color: var(--accent); }
+
+    .interactive-terminal {
+      background: #141311;
+      border: 1px solid #3a3834;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      max-width: 720px;
+    }
+    .it-bar {
+      background: #252420;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid #3a3834;
+    }
+    .it-body {
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.8;
+      color: #c8c4bc;
+      min-height: 280px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .it-input-row {
+      display: flex; align-items: center; gap: 0;
+      border-top: 1px solid #2a2826;
+      padding: 14px 20px;
+    }
+    .it-prompt-label {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #688f6a;
+      white-space: nowrap;
+      margin-right: 8px;
+    }
+    .it-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #e8e4dc;
+      caret-color: var(--accent);
+    }
+
+    /* ── CONTACT ── */
+    #contact { background: var(--bg2); }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .contact-links { display: flex; flex-direction: column; gap: 12px; }
+    .contact-link {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .contact-link:hover { border-color: var(--accent); transform: translateX(4px); }
+
+    .contact-link-icon {
+      width: 36px; height: 36px;
+      background: #fff0ef;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .contact-link-icon svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .contact-link-info { flex: 1; }
+    .contact-link-name { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--text); }
+    .contact-link-val { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+    .contact-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.06em; }
+    .form-input, .form-textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: var(--accent); }
+    .form-textarea { resize: vertical; min-height: 120px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 32px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .footer-logo em { color: var(--accent); font-style: normal; }
+    .footer-copy {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* ── ANIMATIONS ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .nav-links { gap: 16px; }
+      #hero { flex-direction: column; justify-content: center; padding: 100px 24px 60px; }
+      .terminal-widget { display: none; }
+      section { padding: 70px 24px; }
+      .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+      .skills-grid { grid-template-columns: 1fr 1fr; }
+      .writeup-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="#hero">
+    <span class="bracket">{</span>
+    <span class="name">luc<em>hernan</em></span>
+    <span class="bracket">}</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">sobre mi</a></li>
+    <li><a href="#skills">skills</a></li>
+    <li><a href="#projects">proyectos</a></li>
+    <li><a href="#writeups">writeups</a></li>
+    <li><a href="#terminal-section">terminal</a></li>
+    <li><a href="#contact">contacto</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      disponible para proyectos · Extremadura, ES
+    </div>
+    <h1 class="hero-name">
+      Luc<em>hernan</em>
+    </h1>
+    <p class="hero-role">
+      <span>// </span>Pentester & Security Researcher
+    </p>
+    <p class="hero-desc">
+      Especialista en ciberseguridad ofensiva, pentesting web y administración de sistemas. CRTA · eWPTv2 certified.
+    </p>
+    <div class="hero-ctas">
+      <a href="#projects" class="btn-primary">ver proyectos →</a>
+      <a href="#contact" class="btn-ghost">contactar</a>
+    </div>
+  </div>
+
+  <div class="terminal-widget" aria-hidden="true">
+    <div class="terminal-bar">
+      <div class="terminal-dot" style="background:#f5a623;"></div>
+      <div class="terminal-dot" style="background:#7ed321;"></div>
+      <div class="terminal-dot" style="background:#4a90d9;"></div>
+      <span class="terminal-title">luchernan@kali ~ </span>
+    </div>
+    <div class="terminal-body" id="hero-terminal">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ── ABOUT ── -->
+<section id="about">
+  <div class="section-label">01 · sobre mi</div>
+  <h2 class="section-title">Hacker <em>ético</em>,<br>sysadmin de vocación.</h2>
+
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <p>
+        Apasionado de la ciberseguridad ofensiva y la administración de sistemas. Mi enfoque combina pensamiento adversarial con una sólida base técnica en redes e infraestructura.
+      </p>
+      <p>
+        Especializado en red team, pentesting web y Active Directory. Resuelvo máquinas en HackTheBox y TryHackMe de manera habitual, documentando cada proceso con writeups detallados.
+      </p>
+      <p>
+        Creo en el aprendizaje continuo: cada vulnerabilidad encontrada es una nueva historia que entender, explotar y documentar.
+      </p>
+    </div>
+    <div class="reveal" style="transition-delay:0.15s">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;">Certificaciones</div>
+      <div class="about-certs">
+        <div class="cert-badge">
+          <div class="cert-icon">CRTA</div>
+          <div class="cert-info">
+            <div class="cert-name">Certified Red Team Analyst</div>
+            <div class="cert-org">Altered Security</div>
+          </div>
+          <div class="cert-status">✓ certified</div>
+        </div>
+        <div class="cert-badge">
+          <div class="cert-icon">eWPT</div>
+          <div class="cert-info">
+            <div class="cert-name">eWPTv2 — Web Pentester</div>
+            <div class="cert-org">eLearnSecurity · INE</div>
+          </div>
+          <div class="cert-status">✓ certified</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SKILLS ── -->
+<section id="skills" style="background:var(--bg);">
+  <div class="section-label">02 · habilidades</div>
+  <h2 class="section-title">Stack <em>técnico</em></h2>
+  <div class="skills-grid">
+    <div class="skill-card reveal">
+      <div class="skill-card-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+      </div>
+      <div class="skill-card-title">// pentesting web</div>
+      <div class="skill-tags">
+        <span class="skill-tag">Burp Suite</span><span class="skill-tag">SQLi</span>
+        <span class="skill-tag">XSS</span><span class="skill-tag">IDOR</span>
+        <span class="skill-tag">SSRF</span><span class="skill-tag">XXE</span>
+        <span class="skill-tag">OWASP Top 10</span><span class="skill-tag">JWT attacks</span>
+      </div>
+    </div>
+    <div class="skill-card reveal" style="transition-delay:0.1s">
+      <div class="skill-card-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6m-6 4h4"/></svg>
+      </div>
+      <div class="skill-card-title">// active directory</div>
+      <div class="skill-tags">
+        <span class="skill-tag">Kerberoasting</span><span class="skill-tag">AS-REP</span>
+        <span class="skill-tag">Pass-the-Hash</span><span class="skill-tag">BloodHound</span>
+        <span class="skill-tag">mimikatz</span><span class="skill-tag">impacket</span>
+        <span class="skill-tag">LDAP enum</span><span class="skill-tag">DCSync</span>
+      </div>
+    </div>
+    <div class="skill-card reveal" style="transition-delay:0.2s">
+      <div class="skill-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="skill-card-title">// red team</div>
+      <div class="skill-tags">
+        <span class="skill-tag">CRTA</span><span class="skill-tag">C2 Frameworks</span>
+        <span class="skill-tag">Phishing</span><span class="skill-tag">Pivoting</span>
+        <span class="skill-tag">Post-exploitation</span><span class="skill-tag">Cobalt Strike</span>
+      </div>
+    </div>
+    <div class="skill-card reveal" style="transition-delay:0.05s">
+      <div class="skill-card-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+      </div>
+      <div class="skill-card-title">// sistemas & redes</div>
+      <div class="skill-tags">
+        <span class="skill-tag">Linux</span><span class="skill-tag">Windows Server</span>
+        <span class="skill-tag">VMware/KVM</span><span class="skill-tag">Cisco</span>
+        <span class="skill-tag">TCP/IP</span><span class="skill-tag">VPN/Firewall</span>
+        <span class="skill-tag">Active Directory</span><span class="skill-tag">DNS/DHCP</span>
+      </div>
+    </div>
+    <div class="skill-card reveal" style="transition-delay:0.15s">
+      <div class="skill-card-icon">
+        <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      </div>
+      <div class="skill-card-title">// scripting & tools</div>
+      <div class="skill-tags">
+        <span class="skill-tag">Python</span><span class="skill-tag">Bash</span>
+        <span class="skill-tag">PowerShell</span><span class="skill-tag">Nmap</span>
+        <span class="skill-tag">Metasploit</span><span class="skill-tag">ffuf</span>
+        <span class="skill-tag">Wireshark</span><span class="skill-tag">hashcat</span>
+      </div>
+    </div>
+    <div class="skill-card reveal" style="transition-delay:0.25s">
+      <div class="skill-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="skill-card-title">// plataformas</div>
+      <div class="skill-tags">
+        <span class="skill-tag">HackTheBox</span><span class="skill-tag">TryHackMe</span>
+        <span class="skill-tag">VulnHub</span><span class="skill-tag">PentesterLab</span>
+        <span class="skill-tag">Kali Linux</span><span class="skill-tag">Parrot OS</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PROJECTS ── -->
+<section id="projects">
+  <div class="section-label">03 · proyectos</div>
+  <h2 class="section-title">Trabajo <em>destacado</em></h2>
+  <div class="projects-list">
+    <a href="#" class="project-item reveal">
+      <span class="project-num">01</span>
+      <div class="project-info">
+        <div class="project-name">Active Directory Lab — Red Team</div>
+        <div class="project-desc">Laboratorio local completo con DC, clientes y trusts. Simulación de ataque end-to-end desde phishing hasta DA.</div>
+        <div class="project-tags">
+          <span class="project-tag red">Red Team</span>
+          <span class="project-tag">Windows Server 2022</span>
+          <span class="project-tag">Kerberoasting</span>
+          <span class="project-tag">BloodHound</span>
+        </div>
+      </div>
+      <span class="project-arrow">→</span>
+    </a>
+    <a href="#" class="project-item reveal" style="transition-delay:0.1s">
+      <span class="project-num">02</span>
+      <div class="project-info">
+        <div class="project-name">Herramienta de enumeración web</div>
+        <div class="project-desc">Script en Python para automatizar la fase de reconocimiento: subdominios, directorios, tecnologías y headers.</div>
+        <div class="project-tags">
+          <span class="project-tag red">Pentesting</span>
+          <span class="project-tag">Python</span>
+          <span class="project-tag">OSINT</span>
+          <span class="project-tag">Recon</span>
+        </div>
+      </div>
+      <span class="project-arrow">→</span>
+    </a>
+    <a href="#" class="project-item reveal" style="transition-delay:0.2s">
+      <span class="project-num">03</span>
+      <div class="project-info">
+        <div class="project-name">Homelab SOC & Monitoring</div>
+        <div class="project-desc">Infraestructura de detección con Wazuh, Suricata y Elastic Stack. Creación de reglas de detección personalizadas.</div>
+        <div class="project-tags">
+          <span class="project-tag">Wazuh</span>
+          <span class="project-tag">Elastic Stack</span>
+          <span class="project-tag">Blue Team</span>
+          <span class="project-tag">SIEM</span>
+        </div>
+      </div>
+      <span class="project-arrow">→</span>
+    </a>
+    <a href="#" class="project-item reveal" style="transition-delay:0.3s">
+      <span class="project-num">04</span>
+      <div class="project-info">
+        <div class="project-name">Phishing Campaign Simulator</div>
+        <div class="project-desc">Framework para simular campañas de phishing en entornos controlados con tracking de clics y credenciales.</div>
+        <div class="project-tags">
+          <span class="project-tag red">Social Engineering</span>
+          <span class="project-tag">GoPhish</span>
+          <span class="project-tag">Python</span>
+        </div>
+      </div>
+      <span class="project-arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- ── WRITEUPS ── -->
+<section id="writeups">
+  <div class="section-label">04 · writeups</div>
+  <h2 class="section-title">Máquinas <em>resueltas</em></h2>
+  <div class="writeup-grid">
+    <a href="#" class="writeup-card reveal">
+      <div class="writeup-platform">HackTheBox</div>
+      <div class="writeup-title">Active — Kerberoasting y Group Policy</div>
+      <div class="writeup-diff diff-easy">Easy</div>
+      <div class="writeup-meta">📅 Windows · Active Directory</div>
+    </a>
+    <a href="#" class="writeup-card reveal" style="transition-delay:0.1s">
+      <div class="writeup-platform">HackTheBox</div>
+      <div class="writeup-title">Forest — AS-REP Roasting → DCSync</div>
+      <div class="writeup-diff diff-easy">Easy</div>
+      <div class="writeup-meta">📅 Windows · AD · BloodHound</div>
+    </a>
+    <a href="#" class="writeup-card reveal" style="transition-delay:0.2s">
+      <div class="writeup-platform">HackTheBox</div>
+      <div class="writeup-title">Scrambled — Silver Ticket attack</div>
+      <div class="writeup-diff diff-medium">Medium</div>
+      <div class="writeup-meta">📅 Windows · Kerberos · .NET</div>
+    </a>
+    <a href="#" class="writeup-card reveal" style="transition-delay:0.05s">
+      <div class="writeup-platform">TryHackMe</div>
+      <div class="writeup-title">Anthem — Basic enumeration Windows</div>
+      <div class="writeup-diff diff-easy">Easy</div>
+      <div class="writeup-meta">📅 Windows · RDP · OSINT</div>
+    </a>
+    <a href="#" class="writeup-card reveal" style="transition-delay:0.15s">
+      <div class="writeup-platform">HackTheBox</div>
+      <div class="writeup-title">Reddish — Redis, Node, Pivoting</div>
+      <div class="writeup-diff diff-insane">Insane</div>
+      <div class="writeup-meta">📅 Linux · Pivot · Redis</div>
+    </a>
+    <a href="#" class="writeup-card reveal" style="transition-delay:0.25s">
+      <div class="writeup-platform">HackTheBox</div>
+      <div class="writeup-title">Sauna — Bloodhound & PrivEsc AD</div>
+      <div class="writeup-diff diff-easy">Easy</div>
+      <div class="writeup-meta">📅 Windows · AD · WinRM</div>
+    </a>
+  </div>
+</section>
+
+<!-- ── INTERACTIVE TERMINAL ── -->
+<section id="terminal-section">
+  <div class="section-label">05 · interactive</div>
+  <h2 class="section-title">Terminal <em>interactiva</em></h2>
+  <p style="color:#7a7870;font-size:15px;margin-bottom:40px;font-family:var(--mono);">// escribe <span style="color:var(--accent)">help</span> para ver los comandos disponibles</p>
+  <div class="interactive-terminal">
+    <div class="it-bar">
+      <div class="terminal-dot" style="background:#f5a623;"></div>
+      <div class="terminal-dot" style="background:#7ed321;"></div>
+      <div class="terminal-dot" style="background:#4a90d9;"></div>
+      <span class="terminal-title">luchernan@portfolio:~$</span>
+    </div>
+    <div class="it-body" id="it-output">
+      <div><span style="color:#688f6a">luchernan@portfolio</span><span style="color:#c8c4bc">:~$ </span><span style="color:#e8e4dc">whoami</span></div>
+      <div style="color:#7ab0e8;margin-left:4px;">luchernan — pentester & sysadmin</div>
+      <div style="margin-top:8px;"><span style="color:#688f6a">luchernan@portfolio</span><span style="color:#c8c4bc">:~$ </span><span style="color:#e8e4dc">cat /etc/motd</span></div>
+      <div style="color:#8eb87a;margin-left:4px;">Bienvenido/a al portfolio. Escribe 'help' para empezar.</div>
+    </div>
+    <div class="it-input-row">
+      <span class="it-prompt-label">luchernan@portfolio:~$</span>
+      <input class="it-input" id="it-input" type="text" placeholder="escribe un comando..." autocomplete="off" spellcheck="false" />
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="section-label">06 · contacto</div>
+  <h2 class="section-title">Hablemos <em>sobre</em><br>tu proyecto.</h2>
+  <div class="contact-grid">
+    <div class="reveal">
+      <p style="font-size:16px;color:var(--text2);margin-bottom:32px;line-height:1.8;">
+        ¿Tienes un entorno que asegurar, una auditoría que realizar o simplemente quieres hablar de ciberseguridad? Escríbeme.
+      </p>
+      <div class="contact-links">
+        <a href="mailto:tu@email.com" class="contact-link">
+          <div class="contact-link-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="contact-link-info">
+            <div class="contact-link-name">EMAIL</div>
+            <div class="contact-link-val">tu@email.com</div>
+          </div>
+          <span style="color:var(--border2);font-size:16px;">→</span>
+        </a>
+        <a href="https://github.com/luchernan" target="_blank" class="contact-link">
+          <div class="contact-link-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          </div>
+          <div class="contact-link-info">
+            <div class="contact-link-name">GITHUB</div>
+            <div class="contact-link-val">github.com/luchernan</div>
+          </div>
+          <span style="color:var(--border2);font-size:16px;">→</span>
+        </a>
+        <a href="https://linkedin.com/in/luchernan" target="_blank" class="contact-link">
+          <div class="contact-link-icon">
+            <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          </div>
+          <div class="contact-link-info">
+            <div class="contact-link-name">LINKEDIN</div>
+            <div class="contact-link-val">linkedin.com/in/luchernan</div>
+          </div>
+          <span style="color:var(--border2);font-size:16px;">→</span>
+        </a>
+      </div>
+    </div>
+    <div class="reveal" style="transition-delay:0.15s">
+      <div class="contact-form">
+        <div class="form-group">
+          <label class="form-label">nombre</label>
+          <input class="form-input" type="text" placeholder="Tu nombre" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">email</label>
+          <input class="form-input" type="email" placeholder="tu@email.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">mensaje</label>
+          <textarea class="form-textarea" placeholder="Cuéntame en qué puedo ayudarte..."></textarea>
+        </div>
+        <button onclick="handleContactSubmit(event)" class="btn-primary" style="align-self:flex-start;">enviar mensaje →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">{ luc<em>hernan</em> } — © 2025</div>
+  <div class="footer-copy">built with &lt;3 · pentesting & sysadmin</div>
+</footer>
+
+<script>
+  // ── CURSOR ──
+  const cur = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top = e.clientY + 'px';
+    setTimeout(() => {
+      ring.style.left = e.clientX + 'px';
+      ring.style.top = e.clientY + 'px';
+    }, 80);
+  });
+
+  // ── HERO TERMINAL TYPEWRITER ──
+  const heroTerm = document.getElementById('hero-terminal');
+  const heroLines = [
+    { delay: 0,    html: '<span class="t-prompt">❯</span> <span class="t-cmd">nmap -sV -sC 10.10.10.x</span>' },
+    { delay: 600,  html: '<span class="t-info">PORT     STATE SERVICE VERSION</span>' },
+    { delay: 900,  html: '<span class="t-val">80/tcp   open  http    Apache 2.4.50</span>' },
+    { delay: 1100, html: '<span class="t-val">443/tcp  open  https   nginx 1.18.0</span>' },
+    { delay: 1300, html: '<span class="t-val">445/tcp  open  smb     Samba 4.x</span>' },
+    { delay: 1800, html: '' },
+    { delay: 1900, html: '<span class="t-prompt">❯</span> <span class="t-cmd">hashcat -m 13100 hash.txt rockyou.txt</span>' },
+    { delay: 2500, html: '<span class="t-warn">Session........: hashcat</span>' },
+    { delay: 2700, html: '<span class="t-key">Status.........: Cracked</span>' },
+    { delay: 3000, html: '<span class="t-val">Password.......: <span style="color:#c8382b;font-weight:600">P@ssw0rd123!</span></span>' },
+    { delay: 3400, html: '' },
+    { delay: 3500, html: '<span class="t-prompt">❯</span> <span class="t-cmd">python3 blodhound.py -u admin -p <span style="color:#c8382b">***</span></span>' },
+    { delay: 4000, html: '<span class="t-info">[*] Found path to Domain Admin</span>' },
+    { delay: 4200, html: '<span class="t-key">[!] Pwned. <span class="t-cursor-blink"></span></span>' },
+  ];
+
+  heroLines.forEach(({ delay, html }) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.innerHTML = html || '&nbsp;';
+      heroTerm.appendChild(line);
+      heroTerm.scrollTop = heroTerm.scrollHeight;
+    }, delay);
+  });
+
+  // ── INTERACTIVE TERMINAL ──
+  const itOutput = document.getElementById('it-output');
+  const itInput  = document.getElementById('it-input');
+
+  const commands = {
+    help: () => [
+      '<span style="color:#688f6a">Comandos disponibles:</span>',
+      '  <span style="color:#c8382b">whoami</span>        — información sobre mí',
+      '  <span style="color:#c8382b">skills</span>        — lista de habilidades técnicas',
+      '  <span style="color:#c8382b">certs</span>         — certificaciones obtenidas',
+      '  <span style="color:#c8382b">projects</span>      — proyectos destacados',
+      '  <span style="color:#c8382b">writeups</span>      — máquinas resueltas',
+      '  <span style="color:#c8382b">contact</span>       — formas de contacto',
+      '  <span style="color:#c8382b">cat flag.txt</span>  — 🤫',
+      '  <span style="color:#c8382b">clear</span>         — limpiar terminal',
+    ],
+    whoami: () => [
+      '<span style="color:#7ab0e8">┌── luchernan</span>',
+      '<span style="color:#7ab0e8">│</span>   Pentester & Security Researcher',
+      '<span style="color:#7ab0e8">│</span>   Especialista en ciberseguridad ofensiva',
+      '<span style="color:#7ab0e8">│</span>   Based in Extremadura, Spain',
+      '<span style="color:#7ab0e8">│</span>   Open to freelance & colaboraciones',
+      '<span style="color:#7ab0e8">└──</span>',
+    ],
+    skills: () => [
+      '<span style="color:#688f6a">// Technical Skills</span>',
+      '  <span style="color:#d4a84a">Pentesting Web</span>    → Burp Suite, OWASP, SSRF, XXE, IDOR',
+      '  <span style="color:#d4a84a">Active Directory</span>  → BloodHound, mimikatz, Kerberoasting',
+      '  <span style="color:#d4a84a">Red Team</span>          → C2, Phishing, Pivoting, Post-expl.',
+      '  <span style="color:#d4a84a">Sistemas & Redes</span>  → Linux, Windows Server, Cisco, VPN',
+      '  <span style="color:#d4a84a">Scripting</span>         → Python, Bash, PowerShell',
+    ],
+    certs: () => [
+      '<span style="color:#688f6a">// Certificaciones</span>',
+      '  <span style="color:#8eb87a">✓</span> <span style="color:#e8e4dc">CRTA</span>   — Certified Red Team Analyst (Altered Security)',
+      '  <span style="color:#8eb87a">✓</span> <span style="color:#e8e4dc">eWPTv2</span> — Web Application Pentester (eLearnSecurity/INE)',
+    ],
+    projects: () => [
+      '<span style="color:#688f6a">// Proyectos</span>',
+      '  [01] AD Lab Red Team     — DC + trusts + ataque end-to-end',
+      '  [02] Web Enum Tool       — recon automático en Python',
+      '  [03] SOC Homelab         — Wazuh + Suricata + Elastic',
+      '  [04] Phishing Simulator  — GoPhish + tracking',
+    ],
+    writeups: () => [
+      '<span style="color:#688f6a">// Writeups recientes</span>',
+      '  <span style="color:#7ab0e8">HTB</span> Active        <span style="color:#8eb87a">[Easy]</span>    Kerberoasting + GPP',
+      '  <span style="color:#7ab0e8">HTB</span> Forest        <span style="color:#8eb87a">[Easy]</span>    AS-REP + DCSync',
+      '  <span style="color:#7ab0e8">HTB</span> Scrambled     <span style="color:#d4a84a">[Medium]</span>  Silver Ticket',
+      '  <span style="color:#7ab0e8">HTB</span> Reddish       <span style="color:#c8382b">[Insane]</span>  Redis + Pivot',
+    ],
+    contact: () => [
+      '<span style="color:#688f6a">// Contacto</span>',
+      '  <span style="color:#c8382b">email</span>    → tu@email.com',
+      '  <span style="color:#c8382b">github</span>   → github.com/luchernan',
+      '  <span style="color:#c8382b">linkedin</span> → linkedin.com/in/luchernan',
+    ],
+    'cat flag.txt': () => [
+      '<span style="color:#c8382b">Permission denied.</span>',
+      '<span style="color:#5a5850">// Necesitas escalar privilegios primero. 😏</span>',
+    ],
+    clear: () => { itOutput.innerHTML = ''; return []; },
+    ls: () => [
+      '<span style="color:#7ab0e8">about.md</span>   <span style="color:#8eb87a">certs/</span>   <span style="color:#d4a84a">projects/</span>   <span style="color:#c8382b">flag.txt</span>   <span style="color:#7ab0e8">writeups/</span>',
+    ],
+    pwd: () => ['/home/luchernan/portfolio'],
+    uname: () => ['Linux kali 6.1.0-kali9-amd64 x86_64 GNU/Linux'],
+    id:    () => ['uid=1000(luchernan) gid=1000(luchernan) groups=1000(luchernan),4(adm),24(cdrom),27(sudo)'],
+  };
+
+  function addOutput(lines) {
+    lines.forEach(l => {
+      const d = document.createElement('div');
+      d.innerHTML = l;
+      d.style.marginLeft = '4px';
+      itOutput.appendChild(d);
+    });
+    itOutput.scrollTop = itOutput.scrollHeight;
+  }
+
+  itInput.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const raw = itInput.value.trim();
+    if (!raw) return;
+    itInput.value = '';
+
+    // echo command
+    const echo = document.createElement('div');
+    echo.innerHTML = `<span style="color:#688f6a">luchernan@portfolio</span><span style="color:#c8c4bc">:~$ </span><span style="color:#e8e4dc">${raw}</span>`;
+    itOutput.appendChild(echo);
+
+    const fn = commands[raw.toLowerCase()];
+    if (fn) {
+      const result = fn();
+      if (result && result.length) addOutput(result);
+    } else {
+      addOutput([`<span style="color:#c8382b">bash: ${raw}: command not found</span>`, `<span style="color:#5a5850">Escribe 'help' para ver los comandos disponibles.</span>`]);
+    }
+
+    itOutput.scrollTop = itOutput.scrollHeight;
+  });
+
+  // ── REVEAL ON SCROLL ──
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => obs.observe(el));
+
+  // ── CONTACT FORM ──
+  function handleContactSubmit(e) {
+    e.preventDefault();
+    const btn = e.target;
+    btn.textContent = 'mensaje enviado ✓';
+    btn.style.background = '#2e7d32';
+    setTimeout(() => { btn.textContent = 'enviar mensaje →'; btn.style.background = ''; }, 3000);
+  }
+
+  // ── ACTIVE NAV ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id; });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + cur ? 'var(--accent)' : '';
+    });
+  });
+</script>
+</body>
+</html>
