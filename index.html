@@ -27,6 +27,24 @@
       --radius-lg: 12px;
     }
 
+    body.dark {
+      --bg: #111110;
+      --bg2: #1a1917;
+      --bg3: #222120;
+      --text: #e8e4dc;
+      --text2: #a09c94;
+      --text3: #5a5850;
+      --border: #2a2826;
+      --border2: #3a3834;
+    }
+    body.dark nav { background: rgba(17,17,16,0.88); }
+    body.dark .hero-grid-bg { opacity: 0.12; }
+    body.dark .cert-icon,
+    body.dark .skill-card-icon,
+    body.dark .contact-link-icon { background: #2a1a18; }
+    body.dark footer { background: #0e0e0d; }
+    body.dark #terminal-section { background: #0e0e0d; }
+
     html { scroll-behavior: smooth; }
 
     body {
@@ -471,57 +489,77 @@
     /* ── WRITEUPS ── */
     #writeups { background: var(--bg); }
 
-    .writeup-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
+    .diff-easy   { background: #e8f5e9; color: #2e7d32; }
+    .diff-medium { background: #fff8e1; color: #f57f17; }
+    .diff-hard   { background: #ffebee; color: var(--accent); }
+    .diff-insane { background: #f3e5f5; color: #6a1b9a; }
 
-    .writeup-card {
+    .writeup-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 24px;
-      text-decoration: none;
-      color: inherit;
-      display: flex; flex-direction: column;
-      transition: border-color 0.2s, transform 0.2s;
+      overflow: hidden;
     }
-    .writeup-card:hover { border-color: var(--accent); transform: translateY(-3px); }
-
-    .writeup-platform {
+    .writeup-table thead tr {
+      background: var(--bg3);
+    }
+    .writeup-table thead th {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 12px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .writeup-table tbody tr {
+      transition: background 0.15s;
+      border-bottom: 1px solid var(--border);
+    }
+    .writeup-table tbody tr:last-child { border-bottom: none; }
+    .writeup-table tbody tr:hover { background: var(--bg3); }
+    .writeup-table tbody td {
+      padding: 14px 20px;
+      vertical-align: middle;
+    }
+    .wt-platform {
       font-family: var(--mono);
       font-size: 10px;
       color: var(--text3);
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      margin-bottom: 12px;
+      white-space: nowrap;
     }
-    .writeup-title {
-      font-size: 15px;
+    .wt-name {
+      font-size: 14px;
       font-weight: 500;
       color: var(--text);
-      margin-bottom: 8px;
-      flex: 1;
+      text-decoration: none;
     }
-    .writeup-diff {
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 100px;
-      align-self: flex-start;
-      margin-bottom: 12px;
-    }
-    .diff-easy { background: #e8f5e9; color: #2e7d32; }
-    .diff-medium { background: #fff8e1; color: #f57f17; }
-    .diff-hard { background: #ffebee; color: var(--accent); }
-    .diff-insane { background: #f3e5f5; color: #6a1b9a; }
-
-    .writeup-meta {
+    .wt-name:hover { color: var(--accent); }
+    .wt-meta {
       font-size: 12px;
       color: var(--text3);
-      display: flex; align-items: center; gap: 8px;
     }
+    .wt-diff {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      white-space: nowrap;
+      display: inline-block;
+    }
+    .wt-arrow {
+      color: var(--border2);
+      font-size: 14px;
+      text-align: right;
+    }
+    .writeup-table tbody tr:hover .wt-arrow { color: var(--accent); }
 
     /* ── TERMINAL ── */
     #terminal-section { background: #1a1917; }
@@ -673,6 +711,24 @@
       .writeup-grid { grid-template-columns: 1fr; }
       footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px; }
     }
+
+    /* ── DARK MODE TOGGLE ── */
+    .theme-toggle {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 14px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text2);
+      letter-spacing: 0.04em;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-toggle .toggle-icon { font-size: 13px; line-height: 1; }
   </style>
 </head>
 <body>
@@ -696,6 +752,10 @@
     <li><a href="#terminal-section">terminal</a></li>
     <li><a href="#contact">contacto</a></li>
   </ul>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+    <span class="toggle-icon" id="toggle-icon">🌙</span>
+    <span id="toggle-label">dark</span>
+  </button>
 </nav>
 
 <!-- ── HERO ── -->
@@ -858,68 +918,61 @@
   <div class="section-label">03 · proyectos</div>
   <h2 class="section-title">Trabajo <em>destacado</em></h2>
   <div class="projects-list">
-
-    <!-- PROYECTO 1 — rellena aquí -->
-    <!-- href: pon el link a tu repo de GitHub -->
     <a href="#" class="project-item reveal">
       <span class="project-num">01</span>
       <div class="project-info">
-        <div class="project-name">Nombre del proyecto</div>
-        <div class="project-desc">Descripción breve de qué hace y para qué sirve.</div>
+        <div class="project-name">Active Directory Lab — Red Team</div>
+        <div class="project-desc">Laboratorio local completo con DC, clientes y trusts. Simulación de ataque end-to-end desde phishing hasta DA.</div>
         <div class="project-tags">
-          <span class="project-tag red">Categoría</span>
-          <span class="project-tag">Herramienta</span>
-          <span class="project-tag">Técnica</span>
+          <span class="project-tag red">Red Team</span>
+          <span class="project-tag">Windows Server 2022</span>
+          <span class="project-tag">Kerberoasting</span>
+          <span class="project-tag">BloodHound</span>
         </div>
       </div>
       <span class="project-arrow">→</span>
     </a>
-
-    <!-- PROYECTO 2 — rellena aquí -->
     <a href="#" class="project-item reveal" style="transition-delay:0.1s">
       <span class="project-num">02</span>
       <div class="project-info">
-        <div class="project-name">Nombre del proyecto</div>
-        <div class="project-desc">Descripción breve de qué hace y para qué sirve.</div>
+        <div class="project-name">Herramienta de enumeración web</div>
+        <div class="project-desc">Script en Python para automatizar la fase de reconocimiento: subdominios, directorios, tecnologías y headers.</div>
         <div class="project-tags">
-          <span class="project-tag red">Categoría</span>
-          <span class="project-tag">Herramienta</span>
-          <span class="project-tag">Técnica</span>
+          <span class="project-tag red">Pentesting</span>
+          <span class="project-tag">Python</span>
+          <span class="project-tag">OSINT</span>
+          <span class="project-tag">Recon</span>
         </div>
       </div>
       <span class="project-arrow">→</span>
     </a>
-
-    <!-- PROYECTO 3 — rellena aquí -->
     <a href="#" class="project-item reveal" style="transition-delay:0.2s">
       <span class="project-num">03</span>
       <div class="project-info">
-        <div class="project-name">Nombre del proyecto</div>
-        <div class="project-desc">Descripción breve de qué hace y para qué sirve.</div>
+        <div class="project-name">Homelab SOC & Monitoring</div>
+        <div class="project-desc">Infraestructura de detección con Wazuh, Suricata y Elastic Stack. Creación de reglas de detección personalizadas.</div>
         <div class="project-tags">
-          <span class="project-tag red">Categoría</span>
-          <span class="project-tag">Herramienta</span>
-          <span class="project-tag">Técnica</span>
+          <span class="project-tag">Wazuh</span>
+          <span class="project-tag">Elastic Stack</span>
+          <span class="project-tag">Blue Team</span>
+          <span class="project-tag">SIEM</span>
         </div>
       </div>
       <span class="project-arrow">→</span>
     </a>
-
-    <!-- PROYECTO 4 — rellena aquí -->
     <a href="#" class="project-item reveal" style="transition-delay:0.3s">
       <span class="project-num">04</span>
       <div class="project-info">
-        <div class="project-name">Nombre del proyecto</div>
-        <div class="project-desc">Descripción breve de qué hace y para qué sirve.</div>
+        <div class="project-name">Phishing Campaign Simulator</div>
+        <div class="project-desc">Framework para simular campañas de phishing en entornos controlados con tracking de clics y credenciales.</div>
         <div class="project-tags">
-          <span class="project-tag red">Categoría</span>
-          <span class="project-tag">Herramienta</span>
-          <span class="project-tag">Técnica</span>
+          <span class="project-tag red">Social Engineering</span>
+          <span class="project-tag">GoPhish</span>
+          <span class="project-tag">Python</span>
         </div>
       </div>
       <span class="project-arrow">→</span>
     </a>
-
   </div>
 </section>
 
@@ -927,59 +980,72 @@
 <section id="writeups">
   <div class="section-label">04 · writeups</div>
   <h2 class="section-title">Máquinas <em>resueltas</em></h2>
-  <div class="writeup-grid">
+  <table class="writeup-table reveal">
+    <thead>
+      <tr>
+        <th>Plataforma</th>
+        <th>Máquina</th>
+        <th>OS · Técnica</th>
+        <th>Dificultad</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Para añadir una máquina, copia un bloque <tr>...</tr> y rellénalo -->
+      <!-- href: pon el link a tu writeup (GitHub, Notion, etc.) -->
+      <!-- Dificultad: diff-easy · diff-medium · diff-hard · diff-insane -->
 
-    <!-- WRITEUP 1 — rellena aquí -->
-    <a href="#" class="writeup-card reveal">
-      <div class="writeup-platform">HackTheBox</div>
-      <div class="writeup-title">Nombre de la máquina</div>
-      <div class="writeup-diff diff-easy">Easy</div>
-      <div class="writeup-meta">OS · Técnica principal</div>
-    </a>
+      <tr>
+        <td class="wt-platform">HackTheBox</td>
+        <td><a href="#" class="wt-name">Nombre de la máquina</a></td>
+        <td class="wt-meta">OS · Técnica principal</td>
+        <td><span class="wt-diff diff-easy">Easy</span></td>
+        <td class="wt-arrow">→</td>
+      </tr>
 
-    <!-- WRITEUP 2 — rellena aquí -->
-    <a href="#" class="writeup-card reveal" style="transition-delay:0.1s">
-      <div class="writeup-platform">HackTheBox</div>
-      <div class="writeup-title">Nombre de la máquina</div>
-      <div class="writeup-diff diff-medium">Medium</div>
-      <div class="writeup-meta">OS · Técnica principal</div>
-    </a>
+      <tr>
+        <td class="wt-platform">HackTheBox</td>
+        <td><a href="#" class="wt-name">Nombre de la máquina</a></td>
+        <td class="wt-meta">OS · Técnica principal</td>
+        <td><span class="wt-diff diff-medium">Medium</span></td>
+        <td class="wt-arrow">→</td>
+      </tr>
 
-    <!-- WRITEUP 3 — rellena aquí -->
-    <a href="#" class="writeup-card reveal" style="transition-delay:0.2s">
-      <div class="writeup-platform">TryHackMe</div>
-      <div class="writeup-title">Nombre de la máquina</div>
-      <div class="writeup-diff diff-easy">Easy</div>
-      <div class="writeup-meta">OS · Técnica principal</div>
-    </a>
+      <tr>
+        <td class="wt-platform">TryHackMe</td>
+        <td><a href="#" class="wt-name">Nombre de la máquina</a></td>
+        <td class="wt-meta">OS · Técnica principal</td>
+        <td><span class="wt-diff diff-easy">Easy</span></td>
+        <td class="wt-arrow">→</td>
+      </tr>
 
-    <!-- WRITEUP 4 — rellena aquí -->
-    <a href="#" class="writeup-card reveal" style="transition-delay:0.05s">
-      <div class="writeup-platform">HackTheBox</div>
-      <div class="writeup-title">Nombre de la máquina</div>
-      <div class="writeup-diff diff-hard">Hard</div>
-      <div class="writeup-meta">OS · Técnica principal</div>
-    </a>
+      <tr>
+        <td class="wt-platform">HackTheBox</td>
+        <td><a href="#" class="wt-name">Nombre de la máquina</a></td>
+        <td class="wt-meta">OS · Técnica principal</td>
+        <td><span class="wt-diff diff-hard">Hard</span></td>
+        <td class="wt-arrow">→</td>
+      </tr>
 
-    <!-- WRITEUP 5 — rellena aquí -->
-    <a href="#" class="writeup-card reveal" style="transition-delay:0.15s">
-      <div class="writeup-platform">HackTheBox</div>
-      <div class="writeup-title">Nombre de la máquina</div>
-      <div class="writeup-diff diff-medium">Medium</div>
-      <div class="writeup-meta">OS · Técnica principal</div>
-    </a>
+      <tr>
+        <td class="wt-platform">HackTheBox</td>
+        <td><a href="#" class="wt-name">Nombre de la máquina</a></td>
+        <td class="wt-meta">OS · Técnica principal</td>
+        <td><span class="wt-diff diff-medium">Medium</span></td>
+        <td class="wt-arrow">→</td>
+      </tr>
 
-    <!-- WRITEUP 6 — rellena aquí -->
-    <a href="#" class="writeup-card reveal" style="transition-delay:0.25s">
-      <div class="writeup-platform">TryHackMe</div>
-      <div class="writeup-title">Nombre de la máquina</div>
-      <div class="writeup-diff diff-insane">Insane</div>
-      <div class="writeup-meta">OS · Técnica principal</div>
-    </a>
+      <tr>
+        <td class="wt-platform">TryHackMe</td>
+        <td><a href="#" class="wt-name">Nombre de la máquina</a></td>
+        <td class="wt-meta">OS · Técnica principal</td>
+        <td><span class="wt-diff diff-insane">Insane</span></td>
+        <td class="wt-arrow">→</td>
+      </tr>
 
-  </div>
+    </tbody>
+  </table>
 </section>
-
 <!-- ── INTERACTIVE TERMINAL ── -->
 <section id="terminal-section">
   <div class="section-label">05 · interactive</div>
@@ -1035,7 +1101,7 @@
           </div>
           <span style="color:var(--border2);font-size:16px;">→</span>
         </a>
-        <a href="https://linkedin.com/in/francisco-leonardo-pérez-34138839a/" target="_blank" class="contact-link">
+        <a href="https://linkedin.com/in/francisco-leonardo-p%C3%A9rez-34138839a/" target="_blank" class="contact-link">
           <div class="contact-link-icon">
             <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
           </div>
@@ -1069,7 +1135,7 @@
 
 <!-- ── FOOTER ── -->
 <footer>
-  <div class="footer-logo">{ fl<em>0</em> } — © 2025</div>
+  <div class="footer-logo">{ luc<em>hernan</em> } — © 2025</div>
   <div class="footer-copy">built with &lt;3 · pentesting & sysadmin</div>
 </footer>
 
@@ -1153,19 +1219,19 @@
     ],
     projects: () => [
       '<span style="color:#688f6a">// Proyectos</span>',
-      '  Próximamente — en construcción.',
+      '  [01] AD Lab Red Team     — DC + trusts + ataque end-to-end',
+      '  [02] Web Enum Tool       — recon automático en Python',
+      '  [03] SOC Homelab         — Wazuh + Suricata + Elastic',
+      '  [04] Phishing Simulator  — GoPhish + tracking',
     ],
     writeups: () => [
-      '<span style="color:#688f6a">// Writeups recientes</span>',
-      '  <span style="color:#7ab0e8">HTB</span> Active        <span style="color:#8eb87a">[Easy]</span>    Kerberoasting + GPP',
-      '  <span style="color:#7ab0e8">HTB</span> Forest        <span style="color:#8eb87a">[Easy]</span>    AS-REP + DCSync',
-      '  <span style="color:#7ab0e8">HTB</span> Scrambled     <span style="color:#d4a84a">[Medium]</span>  Silver Ticket',
-      '  <span style="color:#7ab0e8">HTB</span> Reddish       <span style="color:#c8382b">[Insane]</span>  Redis + Pivot',
+      '<span style="color:#688f6a">// Writeups</span>',
+      '  En construcción — próximamente mis máquinas aquí.',
     ],
     contact: () => [
       '<span style="color:#688f6a">// Contacto</span>',
       '  <span style="color:#c8382b">email</span>    → tu@email.com',
-      '  <span style="color:#c8382b">github</span>   → github.com/fl0',
+      '  <span style="color:#c8382b">github</span>   → github.com/leonardoperezf01',
       '  <span style="color:#c8382b">linkedin</span> → linkedin.com/in/francisco-leonardo-pérez-34138839a/',
     ],
     'cat flag.txt': () => [
@@ -1224,9 +1290,22 @@
   function handleContactSubmit(e) {
     e.preventDefault();
     const btn = e.target;
-    btn.textContent = 'mensaje enviado ✓';
+    const nombre  = document.querySelector('.form-input[type="text"]').value.trim();
+    const email   = document.querySelector('.form-input[type="email"]').value.trim();
+    const mensaje = document.querySelector('.form-textarea').value.trim();
+    if (!nombre || !email || !mensaje) {
+      btn.textContent = 'rellena todos los campos';
+      btn.style.background = '#b45309';
+      setTimeout(() => { btn.textContent = 'enviar mensaje →'; btn.style.background = ''; }, 2500);
+      return;
+    }
+    const subject  = encodeURIComponent('Contacto desde portfolio — ' + nombre);
+    const body     = encodeURIComponent('Nombre: ' + nombre + '\nEmail: ' + email + '\n\n' + mensaje);
+    const mailtoUrl = 'mailto:leonardoperezf01@gmail.com?subject=' + subject + '&body=' + body;
+    window.location.href = mailtoUrl;
+    btn.textContent = 'abriendo cliente de correo... ✓';
     btn.style.background = '#2e7d32';
-    setTimeout(() => { btn.textContent = 'enviar mensaje →'; btn.style.background = ''; }, 3000);
+    setTimeout(() => { btn.textContent = 'enviar mensaje →'; btn.style.background = ''; }, 3500);
   }
 
   // ── ACTIVE NAV ──
@@ -1239,6 +1318,20 @@
       a.style.color = a.getAttribute('href') === '#' + cur ? 'var(--accent)' : '';
     });
   });
+
+  // ── DARK MODE ──
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    document.getElementById('toggle-icon').textContent  = isDark ? '☀️' : '🌙';
+    document.getElementById('toggle-label').textContent = isDark ? 'light' : 'dark';
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+  // Restore saved preference
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark');
+    document.getElementById('toggle-icon').textContent  = '☀️';
+    document.getElementById('toggle-label').textContent = 'light';
+  }
 </script>
 </body>
 </html>
